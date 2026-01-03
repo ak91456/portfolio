@@ -1,0 +1,187 @@
+/* ================= GLOBAL ================= */
+* {
+  box-sizing: border-box;
+  user-select: none;
+  font-family: -apple-system, BlinkMacSystemFont, "San Francisco",
+               "Segoe UI", Roboto, sans-serif;
+}
+
+/* ================= BACKGROUND ================= */
+body {
+  margin: 0;
+  height: 100vh;
+  background: linear-gradient(
+    135deg,
+    #667eea 0%,
+    #764ba2 45%,
+    #f093fb 100%
+  );
+  overflow: hidden;
+}
+
+/* ================= DESKTOP ================= */
+#desktop {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* ================= DESKTOP ICONS ================= */
+.icon {
+  width: 72px;
+  text-align: center;
+  color: white;
+  cursor: pointer;
+  border-radius: 10px;
+  padding: 4px 4px 6px;
+  transition: background 0.15s ease, transform 0.15s ease;
+}
+
+.icon:hover {
+  background: rgba(255, 255, 255, 0.14);
+  transform: scale(1.04);
+}
+
+.icon span {
+  font-size: 12px;
+  display: block;
+  line-height: 1;
+}
+
+/* ================= DOCK ================= */
+#dock {
+  position: fixed;
+  bottom: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 16px;
+  padding: 10px 18px;
+  background: rgba(255, 255, 255, 0.22);
+  backdrop-filter: blur(20px);
+  border-radius: 18px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+}
+
+.dock-icon {
+  font-size: 28px;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.dock-icon:hover {
+  transform: scale(1.35);
+}
+
+/* ================= WINDOW ================= */
+.window {
+  position: absolute;
+  width: 420px;
+  height: 360px;
+  background: rgba(255, 255, 255, 0.28);
+  backdrop-filter: blur(25px);
+  border-radius: 16px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  animation: openWin 0.25s ease;
+  overflow: hidden;
+}
+
+/* ================= WINDOW HEADER ================= */
+.window-header {
+  height: 32px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px;
+  cursor: move;
+}
+
+/* macOS Window Controls */
+.control {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+
+.control.red { background: #ff5f57; }
+.control.yellow { background: #ffbd2e; }
+.control.green { background: #28c840; }
+
+/* ================= WINDOW BODY ================= */
+.window-body {
+  height: calc(100% - 32px);
+  padding: 12px;
+  color: #111;
+  font-size: 13.5px;
+  line-height: 1.5;
+  overflow: hidden;
+}
+
+/* ================= TERMINAL ================= */
+.window-body.terminal {
+  background: #0b0b0b;
+  color: #eaeaea;
+  font-family: Menlo, Monaco, Consolas, monospace;
+  font-size: 13px;
+  display: flex;
+  flex-direction: column;
+  padding: 10px;
+}
+
+.terminal-buffer {
+  flex: 1;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  display: block;
+  align-content: flex-start;
+
+}
+
+.prompt-current {
+  color: #0884ea;
+}
+
+.prompt-used {
+  color: #ff4d4d;
+}
+
+.terminal-input {
+  width: 100%;
+  background: #0b0b0b;
+  border: none;
+  outline: none;
+  color: #eaeaea;
+  font-family: inherit;
+  font-size: inherit;
+  margin-top: 4px;
+}
+
+/* ================= FILE EXPLORER ================= */
+.tree-item {
+  cursor: pointer;
+  user-select: none;
+  margin-left: 10px;
+  color: white;
+}
+
+.tree-folder::before { content: "📁 "; }
+.tree-file::before { content: "📄 "; }
+
+.children {
+  margin-left: 15px;
+  display: none;
+}
+
+/* ================= ANIMATIONS ================= */
+@keyframes openWin {
+  from {
+    transform: scale(0.94) translateY(18px);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+  }
+}

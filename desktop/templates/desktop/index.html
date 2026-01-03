@@ -1,0 +1,36 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Arya OS</title>
+  <link rel="stylesheet" href="{% static 'desktop/css/style.css' %}">
+  <script defer src="{% static 'desktop/js/os.js' %}"></script>
+</head>
+<body>
+
+<!-- Desktop -->
+<div id="desktop">
+
+  <!-- Desktop Icons -->
+  <div class="icon" onclick="openApp('about')">📄<span>About</span></div>
+  <div class="icon" onclick="openApp('projects')">📁<span>Projects</span></div>
+  <div class="icon" onclick="openApp('skills')">🛠<span>Skills</span></div>
+  <div class="icon" onclick="openApp('ai')">🤖<span>Assistant</span></div>
+  <div class="icon" onclick="openApp('terminal')">💻<span>Terminal</span></div>
+  <div class="icon" onclick="openApp('files')">📂<span>Files</span></div>
+  
+</div>
+
+<!-- Dock -->
+<div id="dock">
+  <div class="dock-icon" onclick="openApp('about')">📄</div>
+  <div class="dock-icon" onclick="openApp('projects')">📁</div>
+  <div class="dock-icon" onclick="openApp('skills')">🛠</div>
+  <div class="dock-icon" onclick="openApp('ai')">🤖</div>
+  <div class="dock-icon" onclick="openApp('terminal')">💻</div>
+  <div class="dock-icon" onclick="openApp('files')">📂</div>
+</div>
+
+</body>
+</html>
