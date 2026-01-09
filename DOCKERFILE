@@ -1,10 +1,3 @@
-# Multi-stage Dockerfile: node build (optional) -> python runtime
-# Assumes Django with WSGI at core.wsgi:application.
-# Adjust WSGI_MODULE if your entrypoint is different.
-
-################################################################################
-# Stage 1: optional frontend build (only runs if package.json exists)
-################################################################################
 FROM node:18-alpine AS node_builder
 WORKDIR /frontend
 
