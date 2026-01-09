@@ -147,12 +147,13 @@ function initTerminal() {
         if (data.output) output.innerHTML += data.output + "\n";
         if (data.error) output.innerHTML += "error: " + data.error + "\n";
 
-        /* 🔔 STEP 8: filesystem sync */
+        /* 🔔 STEP 8 — filesystem sync */
         if (
           cmd.startsWith("mkdir") ||
           cmd.startsWith("touch") ||
           cmd.startsWith("rm") ||
-          cmd.startsWith("rmdir")
+          cmd.startsWith("rmdir") ||
+          cmd.startsWith("chmod")
         ) {
           window.dispatchEvent(new Event("fs:changed"));
         }
@@ -179,13 +180,20 @@ function initTerminal() {
 /* ================= FILE TREE ================= */
 function renderTree(node, container) {
   const item = document.createElement("div");
-  item.className = node.children ? "tree-folder" : "tree-file";
-  item.textContent = node.name;
+
+  const isFolder = Array.isArray(node.children);
+  item.className = isFolder ? "tree-folder" : "tree-file";
+
+  /* 🔐 STEP 9.1 — permission display only */
+  const perm = node.perm || "???";
+  item.textContent = `[${perm}] ${node.name}`;
+
   container.appendChild(item);
 
-  if (node.children) {
+  if (isFolder) {
     const children = document.createElement("div");
     children.className = "children";
+
     node.children.forEach(child => renderTree(child, children));
     container.appendChild(children);
 
