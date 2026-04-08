@@ -1,0 +1,25 @@
+# fly.toml — AryaOS deployment config
+# Docs: https://fly.io/docs/reference/configuration/
+
+app            = "arya-os"        # change this to your chosen app name
+primary_region = "sin"            # Singapore — closest free region to India
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  PORT        = "10000"
+  DEBUG       = "False"
+  # ALLOWED_HOSTS and SECRET_KEY are set as secrets (fly secrets set)
+
+[http_service]
+  internal_port        = 10000
+  force_https          = true
+  auto_stop_machines   = true   # machine sleeps when idle (free tier)
+  auto_start_machines  = true   # wakes up on first request (~3s cold start)
+  min_machines_running = 0
+
+[[vm]]
+  memory   = "256mb"
+  cpu_kind = "shared"
+  cpus     = 1
