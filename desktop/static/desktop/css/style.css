@@ -1,4 +1,4 @@
-/* ================= GLOBAL ================= */
+/* ─── GLOBAL ─────────────────────────────────────────── */
 * {
   box-sizing: border-box;
   user-select: none;
@@ -6,20 +6,15 @@
                "Segoe UI", Roboto, sans-serif;
 }
 
-/* ================= BACKGROUND ================= */
+/* ─── BACKGROUND ─────────────────────────────────────── */
 body {
   margin: 0;
   height: 100vh;
-  background: linear-gradient(
-    135deg,
-    #667eea 0%,
-    #764ba2 45%,
-    #f093fb 100%
-  );
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 45%, #f093fb 100%);
   overflow: hidden;
 }
 
-/* ================= DESKTOP ================= */
+/* ─── DESKTOP ────────────────────────────────────────── */
 #desktop {
   padding: 20px;
   display: flex;
@@ -27,7 +22,7 @@ body {
   gap: 16px;
 }
 
-/* ================= DESKTOP ICONS ================= */
+/* ─── DESKTOP ICONS ──────────────────────────────────── */
 .icon {
   width: 72px;
   text-align: center;
@@ -37,19 +32,17 @@ body {
   padding: 4px 4px 6px;
   transition: background 0.15s ease, transform 0.15s ease;
 }
-
 .icon:hover {
   background: rgba(255, 255, 255, 0.14);
   transform: scale(1.04);
 }
-
 .icon span {
   font-size: 12px;
   display: block;
   line-height: 1;
 }
 
-/* ================= DOCK ================= */
+/* ─── DOCK ───────────────────────────────────────────── */
 #dock {
   position: fixed;
   bottom: 14px;
@@ -63,125 +56,212 @@ body {
   border-radius: 18px;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
 }
-
 .dock-icon {
   font-size: 28px;
   cursor: pointer;
   transition: transform 0.2s ease;
 }
+.dock-icon:hover { transform: scale(1.35); }
 
-.dock-icon:hover {
-  transform: scale(1.35);
-}
-
-/* ================= WINDOW ================= */
+/* ─── WINDOW ─────────────────────────────────────────── */
 .window {
   position: absolute;
-  width: 420px;
-  height: 360px;
+  width: 440px;
+  min-height: 320px;
+  max-height: 520px;
   background: rgba(255, 255, 255, 0.28);
   backdrop-filter: blur(25px);
   border-radius: 16px;
   box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
   border: 1px solid rgba(255, 255, 255, 0.35);
-  animation: openWin 0.25s ease;
+  animation: openWin 0.22s ease;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
-/* ================= WINDOW HEADER ================= */
+/* ─── WINDOW HEADER ──────────────────────────────────── */
 .window-header {
+  flex-shrink: 0;
   height: 32px;
   display: flex;
   align-items: center;
   gap: 8px;
   padding: 0 12px;
   cursor: move;
+  background: rgba(255,255,255,0.12);
+}
+.win-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(0,0,0,0.55);
+  margin-left: 4px;
+  pointer-events: none;
 }
 
-/* macOS Window Controls */
+/* macOS traffic lights */
 .control {
   width: 12px;
   height: 12px;
   border-radius: 50%;
+  cursor: pointer;
+  flex-shrink: 0;
 }
-
-.control.red { background: #ff5f57; }
+.control.red    { background: #ff5f57; }
 .control.yellow { background: #ffbd2e; }
-.control.green { background: #28c840; }
+.control.green  { background: #28c840; }
 
-/* ================= WINDOW BODY ================= */
+/* ─── WINDOW BODY (default) ──────────────────────────── */
 .window-body {
-  height: calc(100% - 32px);
-  padding: 12px;
+  flex: 1;
+  padding: 14px 16px;
   color: #111;
   font-size: 13.5px;
-  line-height: 1.5;
+  line-height: 1.6;
   overflow: hidden;
 }
 
-/* ================= TERMINAL ================= */
+/* Scrollable variant for about / projects / skills / files */
+.window-body.scroll-body {
+  overflow-y: auto;
+  user-select: text;
+}
+
+/* ─── LOADING ────────────────────────────────────────── */
+.loading {
+  color: rgba(0,0,0,0.4);
+  font-style: italic;
+}
+
+/* ─── ABOUT ──────────────────────────────────────────── */
+#about-body p {
+  margin: 0 0 8px;
+}
+
+/* ─── PROJECTS ───────────────────────────────────────── */
+.project-item {
+  border-bottom: 1px solid rgba(0,0,0,0.08);
+  padding: 8px 0;
+}
+.project-item:last-child { border-bottom: none; }
+
+.project-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.project-link {
+  font-weight: 600;
+  font-size: 14px;
+  color: #3a7bd5;
+  text-decoration: none;
+  flex: 1;
+  user-select: text;
+}
+.project-link:hover { text-decoration: underline; }
+
+.project-toggle {
+  background: rgba(0,0,0,0.07);
+  border: none;
+  border-radius: 4px;
+  width: 22px;
+  height: 22px;
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+  color: #444;
+  flex-shrink: 0;
+  transition: background 0.15s;
+  user-select: none;
+}
+.project-toggle:hover { background: rgba(0,0,0,0.14); }
+
+.project-desc {
+  margin-top: 6px;
+  font-size: 12.5px;
+  color: #444;
+  line-height: 1.5;
+  padding-left: 2px;
+  user-select: text;
+}
+
+/* ─── TERMINAL ───────────────────────────────────────── */
 .window-body.terminal {
-  background: #0b0b0b;
-  color: #eaeaea;
-  font-family: Menlo, Monaco, Consolas, monospace;
-  font-size: 13px;
+  background: #0d0d0d;
+  color: #e8e8e8;
+  font-family: Menlo, Monaco, Consolas, "Courier New", monospace;
+  font-size: 12.5px;
   display: flex;
   flex-direction: column;
   padding: 10px;
+  user-select: text;
 }
 
-.terminal-buffer {
+.terminal-output {
   flex: 1;
   overflow-y: auto;
   white-space: pre-wrap;
-  display: block;
-  align-content: flex-start;
-
+  word-break: break-all;
+  margin-bottom: 4px;
 }
 
-.prompt-current {
-  color: #0884ea;
-}
-
-.prompt-used {
-  color: #ff4d4d;
-}
-
-.terminal-input {
-  width: 100%;
-  background: #0b0b0b;
-  border: none;
-  outline: none;
-  color: #eaeaea;
+.term-out {
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-all;
   font-family: inherit;
   font-size: inherit;
-  margin-top: 4px;
+  color: #e8e8e8;
 }
 
-/* ================= FILE EXPLORER ================= */
-.tree-item {
+.term-err {
+  color: #ff6b6b;
+}
+
+.terminal-input-line {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  border-top: 1px solid rgba(255,255,255,0.06);
+  padding-top: 6px;
+}
+
+.prompt-current { color: #5ba3f5; }
+.prompt-used    { color: #ff6b6b; }
+
+.terminal-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #e8e8e8;
+  font-family: inherit;
+  font-size: inherit;
+  caret-color: #5ba3f5;
+}
+
+/* ─── FILE EXPLORER ──────────────────────────────────── */
+#files-body { padding: 10px 14px; }
+
+.tree-folder,
+.tree-file {
   cursor: pointer;
+  padding: 2px 0;
+  font-size: 13px;
+  color: #111;
   user-select: none;
-  margin-left: 10px;
-  color: white;
 }
-
 .tree-folder::before { content: "📁 "; }
-.tree-file::before { content: "📄 "; }
+.tree-file::before   { content: "📄 "; }
 
 .children {
-  margin-left: 15px;
+  margin-left: 16px;
   display: none;
 }
 
-/* ================= ANIMATIONS ================= */
+/* ─── ANIMATION ──────────────────────────────────────── */
 @keyframes openWin {
-  from {
-    transform: scale(0.94) translateY(18px);
-    opacity: 0;
-  }
-  to {
-    transform: scale(1) translateY(0);
-    opacity: 1;
-  }
+  from { transform: scale(0.94) translateY(16px); opacity: 0; }
+  to   { transform: scale(1)    translateY(0);    opacity: 1; }
 }
