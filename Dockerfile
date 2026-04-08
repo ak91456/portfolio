@@ -1,50 +1,48 @@
-FROM node:18-alpine AS node_builder
-WORKDIR /frontend
-
-# Copy package.json for caching. If no frontend, the COPY won't fail if package.json missing
-# because we will guard build with --if-present.
-COPY package*.json ./
-RUN if [ -f package.json ]; then npm ci --silent; fi
-
-# Copy rest and build if build script present
-COPY . .
-RUN if [ -f package.json ]; then npm run build --if-present; \
-    mkdir -p /build && (if [ -d build ]; then cp -a build/. /build; elif [ -d dist ]; then cp -a dist/. /build; fi); \
-    else mkdir -p /build; fi
-
 ################################################################################
-# Stage 2: Python runtime
+# AryaOS — Production Dockerfile
+# Uses requirements-prod.txt (no ML deps) → lean ~200 MB image
 ################################################################################
 FROM python:3.11-slim
-ENV PYTHONUNBUFFERED=1
+
+# Env: no .pyc files, unbuffered logs, default port
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PORT=10000 \
+    WSGI_MODULE=core.wsgi:application
+
 WORKDIR /app
 
-# Install minimal OS deps (add libpq-dev if you use Postgres)
+# --- OS deps (only what's needed for pure-Python + SQLite) -------------------
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential gcc curl libpq-dev \
-  && rm -rf /var/lib/apt/lists/*
+        build-essential \
+    && rm -rf /var/lib/apt/lists/*
 
-# Install Python deps (expects requirements.txt to be present)
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+# --- Python deps (prod only — no torch/transformers/pytest) ------------------
+COPY requirements-prod.txt .
+RUN pip install --no-cache-dir -r requirements-prod.txt
 
-# Copy application code
+# --- Application code --------------------------------------------------------
 COPY . .
 
-# Copy frontend build output (if any) from node_builder -> put under ./frontend_build
-COPY --from=node_builder /build ./frontend_build
+# Ensure the filesystem sandbox directory exists inside the image
+RUN mkdir -p aryaos_storage/home aryaos_storage/system
 
-# Django static files root (adjust if different)
-ENV STATIC_ROOT=/app/staticfiles
-ENV PORT=10000
-# Default WSGI_MODULE — change on Render or here if needed
-ENV WSGI_MODULE=core.wsgi:application
+# Collect static files (WhiteNoise will serve them)
+# SECRET_KEY must be set or Django refuses to run — use a throw-away value here
+RUN SECRET_KEY=build-time-dummy \
+    ALLOWED_HOSTS=* \
+    python manage.py collectstatic --noinput
 
-# Collect static files (noinput so it won't prompt). If not a Django project,
-# this command will likely error; keep it if you are using Django.
-RUN if [ -f manage.py ]; then python manage.py collectstatic --noinput || true; fi
-
+# Expose the port (Render / Railway read $PORT at runtime)
 EXPOSE ${PORT}
 
-# Use gunicorn to serve the WSGI app. Ensure gunicorn is in requirements.txt.
-CMD ["sh", "-lc", "gunicorn --bind 0.0.0.0:${PORT:-10000} ${WSGI_MODULE} --workers 3 --timeout 120"]
+# On startup: run migrations, then serve with gunicorn
+# Two workers is plenty for a SQLite portfolio site
+CMD ["sh", "-c", \
+     "python manage.py migrate --run-syncdb && \
+      gunicorn ${WSGI_MODULE} \
+        --bind 0.0.0.0:${PORT} \
+        --workers 2 \
+        --timeout 120 \
+        --access-logfile - \
+        --error-logfile -"]

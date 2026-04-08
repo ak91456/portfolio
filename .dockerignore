@@ -1,0 +1,33 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+
+# Django
+db.sqlite3
+staticfiles/
+*.log
+
+# Dev/test
+.env
+.env.*
+venv/
+.venv/
+env/
+pytest.ini
+.coverage
+htmlcov/
+
+# Editor & OS
+.git/
+.gitignore
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+# Node (unused but just in case)
+node_modules/
+npm-debug.log*

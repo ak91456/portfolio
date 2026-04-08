@@ -4,7 +4,9 @@
       "Bash(python:*)",
       "Bash(gh api:*)",
       "WebFetch(domain:github.com)",
-      "WebFetch(domain:api.github.com)"
+      "WebFetch(domain:api.github.com)",
+      "Bash(node --check /c/Users/KIIT/desktop/arya-os-backend/core/desktop/static/desktop/js/os.js)",
+      "Bash(SECRET_KEY=test DEBUG=False ALLOWED_HOSTS=\"*\" python manage.py check --deploy)"
     ]
   }
 }

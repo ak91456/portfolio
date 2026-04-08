@@ -1,3 +1,33 @@
+/* ─── CSS CUSTOM PROPERTIES (THEMING ENGINE) ─────────── */
+:root {
+  --bg: url('../wallpaper.jpg') center / cover no-repeat fixed;
+
+  /* More opaque glass so text is always legible over the colorful bg */
+  --win-bg:           rgba(255,255,255,0.80);
+  --win-blur:         28px;
+  --win-border:       rgba(255,255,255,0.50);
+  --win-shadow:       0 20px 50px rgba(0,0,0,0.28);
+  --win-header-bg:    rgba(255,255,255,0.55);
+  --win-title-color:  rgba(0,0,0,0.72);
+  --win-body-color:   #1a1a2e;           /* dark text on light glass */
+  --win-focus-shadow: 0 0 0 2px rgba(255,100,160,0.45),
+                      0 24px 60px rgba(0,0,0,0.32);
+
+  --dock-bg:          rgba(255,255,255,0.28);
+
+  --term-bg:          #0d0d0d;
+  --term-color:       #e8e8e8;
+  --term-prompt:      #f06090;
+  --term-err:         #ff6b6b;
+  --term-ok:          #5ecc7b;
+  --term-divider:     rgba(255,255,255,0.08);
+
+  --link-color:       #c2185b;           /* readable dark-pink on white glass */
+  --tree-color:       #1a1a2e;
+  --subdued-color:    rgba(0,0,0,0.48);
+  --project-border:   rgba(0,0,0,0.10);
+}
+
 /* ─── GLOBAL ─────────────────────────────────────────── */
 * {
   box-sizing: border-box;
@@ -10,9 +40,13 @@
 body {
   margin: 0;
   height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 45%, #f093fb 100%);
+  background: var(--bg);
   overflow: hidden;
+  transition: background 0.6s ease;
 }
+
+/* ─── MOBILE STATUS BAR (hidden on desktop) ──────────── */
+#mobile-status-bar { display: none; }
 
 /* ─── DESKTOP ────────────────────────────────────────── */
 #desktop {
@@ -31,10 +65,15 @@ body {
   border-radius: 10px;
   padding: 4px 4px 6px;
   transition: background 0.15s ease, transform 0.15s ease;
+  text-shadow: 0 1px 6px rgba(0,0,0,0.5);
 }
 .icon:hover {
-  background: rgba(255, 255, 255, 0.14);
+  background: rgba(255,255,255,0.16);
   transform: scale(1.04);
+}
+.icon b {
+  font-weight: normal;
+  font-style: normal;
 }
 .icon span {
   font-size: 12px;
@@ -51,17 +90,19 @@ body {
   display: flex;
   gap: 16px;
   padding: 10px 18px;
-  background: rgba(255, 255, 255, 0.22);
+  background: var(--dock-bg);
   backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   border-radius: 18px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255,255,255,0.28);
+  box-shadow: 0 10px 40px rgba(0,0,0,0.25);
 }
 .dock-icon {
   font-size: 28px;
   cursor: pointer;
-  transition: transform 0.2s ease;
+  transition: transform 0.15s ease;
+  transform-origin: bottom center;
 }
-.dock-icon:hover { transform: scale(1.35); }
 
 /* ─── WINDOW ─────────────────────────────────────────── */
 .window {
@@ -69,15 +110,22 @@ body {
   width: 440px;
   min-height: 320px;
   max-height: 520px;
-  background: rgba(255, 255, 255, 0.28);
-  backdrop-filter: blur(25px);
+  background: var(--win-bg);
+  backdrop-filter: blur(var(--win-blur));
+  -webkit-backdrop-filter: blur(var(--win-blur));
   border-radius: 16px;
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
-  border: 1px solid rgba(255, 255, 255, 0.35);
+  box-shadow: var(--win-shadow);
+  border: 1px solid var(--win-border);
   animation: openWin 0.22s ease;
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  will-change: transform, opacity;
+  transition: box-shadow 0.2s ease;
+}
+
+.window.focused {
+  box-shadow: var(--win-focus-shadow);
 }
 
 /* ─── WINDOW HEADER ──────────────────────────────────── */
@@ -89,14 +137,18 @@ body {
   gap: 8px;
   padding: 0 12px;
   cursor: move;
-  background: rgba(255,255,255,0.12);
+  background: var(--win-header-bg);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--win-border);
 }
 .win-title {
   font-size: 12px;
   font-weight: 600;
-  color: rgba(0,0,0,0.55);
+  color: var(--win-title-color);
   margin-left: 4px;
   pointer-events: none;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.3);
 }
 
 /* macOS traffic lights */
@@ -111,36 +163,36 @@ body {
 .control.yellow { background: #ffbd2e; }
 .control.green  { background: #28c840; }
 
-/* ─── WINDOW BODY (default) ──────────────────────────── */
+/* Mobile close button (hidden on desktop) */
+.mobile-close-btn { display: none; }
+
+/* ─── WINDOW BODY ────────────────────────────────────── */
 .window-body {
   flex: 1;
   padding: 14px 16px;
-  color: #111;
+  color: var(--win-body-color);
   font-size: 13.5px;
   line-height: 1.6;
   overflow: hidden;
 }
 
-/* Scrollable variant for about / projects / skills / files */
 .window-body.scroll-body {
   overflow-y: auto;
   user-select: text;
 }
 
-/* ─── LOADING ────────────────────────────────────────── */
+/* ─── LOADING PLACEHOLDER ────────────────────────────── */
 .loading {
-  color: rgba(0,0,0,0.4);
+  color: var(--subdued-color);
   font-style: italic;
 }
 
 /* ─── ABOUT ──────────────────────────────────────────── */
-#about-body p {
-  margin: 0 0 8px;
-}
+#about-body p { margin: 0 0 8px; }
 
 /* ─── PROJECTS ───────────────────────────────────────── */
 .project-item {
-  border-bottom: 1px solid rgba(0,0,0,0.08);
+  border-bottom: 1px solid var(--project-border);
   padding: 8px 0;
 }
 .project-item:last-child { border-bottom: none; }
@@ -154,7 +206,7 @@ body {
 .project-link {
   font-weight: 600;
   font-size: 14px;
-  color: #3a7bd5;
+  color: var(--link-color);
   text-decoration: none;
   flex: 1;
   user-select: text;
@@ -175,12 +227,12 @@ body {
   transition: background 0.15s;
   user-select: none;
 }
-.project-toggle:hover { background: rgba(0,0,0,0.14); }
+.project-toggle:hover { background: rgba(0,0,0,0.13); }
 
 .project-desc {
   margin-top: 6px;
   font-size: 12.5px;
-  color: #444;
+  color: var(--subdued-color);
   line-height: 1.5;
   padding-left: 2px;
   user-select: text;
@@ -188,8 +240,8 @@ body {
 
 /* ─── TERMINAL ───────────────────────────────────────── */
 .window-body.terminal {
-  background: #0d0d0d;
-  color: #e8e8e8;
+  background: var(--term-bg);
+  color: var(--term-color);
   font-family: Menlo, Monaco, Consolas, "Courier New", monospace;
   font-size: 12.5px;
   display: flex;
@@ -212,56 +264,356 @@ body {
   word-break: break-all;
   font-family: inherit;
   font-size: inherit;
-  color: #e8e8e8;
+  color: var(--term-color);
 }
 
-.term-err {
-  color: #ff6b6b;
-}
+.term-err { color: var(--term-err); }
+.term-ok  { color: var(--term-ok);  }
+.boot-line { color: var(--term-color); line-height: 1.4; }
 
 .terminal-input-line {
   display: flex;
   align-items: center;
   flex-shrink: 0;
-  border-top: 1px solid rgba(255,255,255,0.06);
+  border-top: 1px solid var(--term-divider);
   padding-top: 6px;
+  margin-top: 2px;
 }
 
-.prompt-current { color: #5ba3f5; }
-.prompt-used    { color: #ff6b6b; }
+.prompt-current { color: var(--term-prompt); }
+.prompt-used    { color: var(--term-err);    }
 
 .terminal-input {
   flex: 1;
   background: transparent;
   border: none;
   outline: none;
-  color: #e8e8e8;
+  color: var(--term-color);
   font-family: inherit;
   font-size: inherit;
-  caret-color: #5ba3f5;
+  caret-color: var(--term-prompt);
 }
+.terminal-input:disabled { opacity: 0.4; cursor: default; }
+
+/* ─── MARKDOWN ───────────────────────────────────────── */
+.term-md { color: var(--term-color); padding: 2px 0; user-select: text; white-space: normal; }
+.term-md h1 { font-size: 1.05em; font-weight: 700; color: var(--term-prompt); margin: 6px 0 3px; border-bottom: 1px solid var(--term-divider); }
+.term-md h2 { font-size: 0.97em; font-weight: 600; color: var(--term-prompt); margin: 5px 0 2px; }
+.term-md h3 { font-size: 0.92em; font-weight: 600; color: var(--term-prompt); margin: 4px 0 2px; }
+.term-md ul { margin: 2px 0 2px 18px; padding: 0; }
+.term-md li { margin: 1px 0; list-style: disc; }
+.term-md p  { margin: 2px 0; }
+.term-md code { background: rgba(255,255,255,0.1); padding: 0 4px; border-radius: 3px; font-family: inherit; font-size: 0.95em; }
+.term-md strong { font-weight: 700; color: var(--term-prompt); }
+.term-md em     { font-style: italic; opacity: 0.85; }
 
 /* ─── FILE EXPLORER ──────────────────────────────────── */
 #files-body { padding: 10px 14px; }
 
-.tree-folder,
-.tree-file {
-  cursor: pointer;
-  padding: 2px 0;
-  font-size: 13px;
-  color: #111;
-  user-select: none;
+.tree-folder, .tree-file {
+  cursor: pointer; padding: 2px 0; font-size: 13px;
+  color: var(--tree-color); user-select: none;
 }
 .tree-folder::before { content: "📁 "; }
 .tree-file::before   { content: "📄 "; }
+.children { margin-left: 16px; display: none; }
 
-.children {
-  margin-left: 16px;
-  display: none;
+/* ─── BOOT SCREEN ────────────────────────────────────── */
+#boot-screen {
+  position: fixed;
+  inset: 0;
+  background: #000;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "Courier New", Courier, monospace;
+  transition: opacity 0.6s ease;
 }
 
-/* ─── ANIMATION ──────────────────────────────────────── */
+#boot-screen.fade-out { opacity: 0; pointer-events: none; }
+
+#boot-content { width: min(700px, 88vw); }
+
+#boot-title {
+  color: #00ff41;
+  font-size: 13.5px;
+  font-weight: bold;
+  letter-spacing: 0.06em;
+  margin-bottom: 4px;
+}
+
+#boot-sep {
+  color: rgba(0,255,65,0.35);
+  font-size: 12px;
+  margin-bottom: 12px;
+}
+
+#boot-log {
+  min-height: 200px;
+  max-height: 340px;
+  overflow: hidden;
+  font-size: 12px;
+  line-height: 1.6;
+  color: #b0b0b0;
+}
+
+.boot-ok  { color: #00ff41; }
+.boot-err { color: #ff4444; }
+
+#boot-prompt { margin-top: 10px; font-size: 13px; color: #00ff41; }
+
+.boot-cursor {
+  animation: blink 0.8s step-end infinite;
+  color: #00ff41;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0; }
+}
+
+/* ─── DOCK PREVIEW TOOLTIP ───────────────────────────── */
+.dock-preview {
+  position: fixed;
+  background: rgba(0,0,0,0.70);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(255,255,255,0.18);
+  border-radius: 8px;
+  padding: 5px 10px;
+  font-size: 11.5px;
+  color: rgba(255,255,255,0.88);
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 1000;
+  transform: translateX(-50%);
+  opacity: 0;
+  transition: opacity 0.18s ease;
+}
+.dock-preview.visible { opacity: 1; }
+
+/* ─── SHAKE ──────────────────────────────────────────── */
+@keyframes shake {
+  0%   { transform: translate(0,0); }
+  15%  { transform: translate(-6px,0); }
+  30%  { transform: translate(6px,0); }
+  45%  { transform: translate(-4px,0); }
+  60%  { transform: translate(4px,0); }
+  75%  { transform: translate(-2px,0); }
+  90%  { transform: translate(2px,0); }
+  100% { transform: translate(0,0); }
+}
+.window.shaking { animation: shake 0.4s ease-out; }
+
+/* ─── WINDOW OPEN ────────────────────────────────────── */
 @keyframes openWin {
   from { transform: scale(0.94) translateY(16px); opacity: 0; }
-  to   { transform: scale(1)    translateY(0);    opacity: 1; }
+  to   { transform: scale(1) translateY(0);       opacity: 1; }
+}
+
+/* ─── iOS SLIDE-UP (used on mobile) ─────────────────── */
+@keyframes slideUpMobile {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0); }
+}
+
+/* ═══════════════════════════════════════════════════════
+   MOBILE — iPhone-style UI  (≤ 768 px)
+═══════════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+
+  /* ── Status bar ──────────────────────────────────── */
+  #mobile-status-bar {
+    display: flex;
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: 44px;
+    align-items: center;
+    justify-content: flex-end;
+    padding: 0 20px 0 20px;
+    z-index: 300;
+    pointer-events: none;
+  }
+
+  #mobile-time {
+    font-size: 15px;
+    font-weight: 600;
+    color: #fff;
+    text-shadow: 0 1px 6px rgba(0,0,0,0.5);
+    letter-spacing: 0.02em;
+  }
+
+  /* ── Home screen icon grid ───────────────────────── */
+  #desktop {
+    position: fixed;
+    top: 50px;
+    left: 0; right: 0;
+    bottom: 96px;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    align-content: start;
+    gap: 22px 4px;
+    padding: 16px 12px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    flex-direction: unset;
+  }
+
+  /* iOS icon — squircle box + label below */
+  .icon {
+    width: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    padding: 0;
+    background: none;
+    border-radius: 0;
+    text-shadow: none;
+  }
+  .icon:hover { background: none; transform: none; }
+  .icon:active { opacity: 0.75; }
+
+  .icon b {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 62px;
+    height: 62px;
+    border-radius: 16px;              /* iOS squircle */
+    background: rgba(255,255,255,0.22);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255,255,255,0.36);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.22),
+                inset 0 1px 0 rgba(255,255,255,0.4);
+    font-size: 30px;
+    font-weight: normal;
+    transition: transform 0.12s ease;
+  }
+  .icon:active b { transform: scale(0.88); }
+
+  .icon span {
+    font-size: 11px;
+    font-weight: 500;
+    color: #fff;
+    text-shadow: 0 1px 5px rgba(0,0,0,0.55);
+    text-align: center;
+    line-height: 1.2;
+  }
+
+  /* ── Dock ────────────────────────────────────────── */
+  #dock {
+    position: fixed;
+    bottom: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 10px 18px;
+    border-radius: 28px;
+    gap: 18px;
+    background: rgba(255,255,255,0.22);
+    backdrop-filter: blur(28px);
+    -webkit-backdrop-filter: blur(28px);
+    border: 1px solid rgba(255,255,255,0.36);
+    box-shadow: 0 8px 36px rgba(0,0,0,0.28),
+                inset 0 1px 0 rgba(255,255,255,0.45);
+  }
+
+  .dock-icon {
+    font-size: 30px;
+    transition: transform 0.1s ease;
+  }
+  .dock-icon:active { transform: scale(0.85); }
+
+  /* ── Full-screen app windows ─────────────────────── */
+  .window {
+    position: fixed !important;
+    inset: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    max-height: 100% !important;
+    min-height: 100% !important;
+    left: 0 !important;
+    top: 0 !important;
+    border-radius: 0 !important;
+    animation: slideUpMobile 0.36s cubic-bezier(0.32, 0.72, 0, 1) !important;
+    border: none !important;
+  }
+
+  /* ── Window header — iOS style ───────────────────── */
+  .window-header {
+    height: 52px;
+    padding: 0 16px;
+    cursor: default;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  /* Hide macOS traffic lights */
+  .control { display: none !important; }
+
+  .win-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--win-title-color);
+    margin-left: 0;
+    text-align: center;
+    flex: 1;
+  }
+
+  /* Mobile close button */
+  .mobile-close-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.18);
+    border: none;
+    color: rgba(255,255,255,0.88);
+    font-size: 15px;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: background 0.15s;
+  }
+  .mobile-close-btn:active { background: rgba(255,255,255,0.32); }
+
+  /* Window body — fill screen */
+  .window-body {
+    font-size: 14px;
+    padding: 14px 16px;
+  }
+
+  .window-body.terminal {
+    font-size: 12px;
+    padding: 10px;
+  }
+
+  /* Boot screen on mobile */
+  #boot-title { font-size: 11px; }
+  #boot-sep   { font-size: 10px; }
+  #boot-log   { font-size: 10.5px; min-height: 150px; max-height: 55vh; }
+}
+
+/* Extra-small phones */
+@media (max-width: 390px) {
+  #desktop {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 18px 2px;
+    padding: 12px 8px;
+  }
+
+  .icon b {
+    width: 54px;
+    height: 54px;
+    font-size: 26px;
+    border-radius: 14px;
+  }
+
+  .icon span { font-size: 10px; }
+
+  #dock { gap: 14px; padding: 9px 14px; }
+  .dock-icon { font-size: 26px; }
 }

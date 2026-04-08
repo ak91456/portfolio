@@ -1,15 +1,194 @@
-let zIndex = 10;
-let currentDir = "/home";
+/* ═══════════════════════════════════════════════════════
+   ARYAOS  —  os.js  v4
+   Sections:
+     1.  Theming Engine
+     2.  App Window Templates
+     3.  Window Manager  (open / close / minimize / focus / shake)
+     4.  Drag  (with edge snapping)
+     5.  About
+     6.  Projects
+     7.  Terminal  (history · Tab completion · Markdown · themes · recruiter)
+     8.  File Tree  (render · load · cache)
+     9.  Full-Screen Boot Sequence
+    10.  Dock  (macOS magnification · preview tooltips)
+    11.  Uptime Clock
+    12.  Auto-boot & Global Listeners
+═══════════════════════════════════════════════════════ */
 
-/* ─────────────────────────────────────────────────────────
-   APP WINDOW TEMPLATES
-   Every app must have a .window-header so makeDraggable works
-───────────────────────────────────────────────────────── */
+/* ───────────────────────────────────────────────────────
+   1. THEMING ENGINE
+─────────────────────────────────────────────────────── */
+let currentTheme = 'default';
+
+const THEMES = {
+  /* Wallpaper + frosted glass — default */
+  default: {
+    '--bg':               "url('/static/desktop/wallpaper.jpg') center / cover no-repeat fixed",
+    '--win-bg':           'rgba(255,255,255,0.80)',
+    '--win-blur':         '28px',
+    '--win-border':       'rgba(255,255,255,0.50)',
+    '--win-shadow':       '0 20px 50px rgba(0,0,0,0.28)',
+    '--win-header-bg':    'rgba(255,255,255,0.55)',
+    '--win-title-color':  'rgba(0,0,0,0.72)',
+    '--win-body-color':   '#1a1a2e',
+    '--win-focus-shadow': '0 0 0 2px rgba(255,100,160,0.45),0 24px 60px rgba(0,0,0,0.32)',
+    '--dock-bg':          'rgba(255,255,255,0.28)',
+    '--term-bg':          '#0d0d0d',
+    '--term-color':       '#e8e8e8',
+    '--term-prompt':      '#f06090',
+    '--term-err':         '#ff6b6b',
+    '--term-ok':          '#5ecc7b',
+    '--term-divider':     'rgba(255,255,255,0.08)',
+    '--link-color':       '#c2185b',
+    '--tree-color':       '#1a1a2e',
+    '--subdued-color':    'rgba(0,0,0,0.48)',
+    '--project-border':   'rgba(0,0,0,0.10)',
+  },
+
+  /* Dark teal engineer grid */
+  engineer: {
+    '--bg':
+      'linear-gradient(rgba(0,200,180,0.07) 1px,transparent 1px) 0 0/40px 40px,' +
+      'linear-gradient(90deg,rgba(0,200,180,0.07) 1px,transparent 1px) 0 0/40px 40px,' +
+      '#1a1a1a',
+    '--win-bg':           'rgba(22,30,34,0.84)',
+    '--win-blur':         '20px',
+    '--win-border':       'rgba(0,200,180,0.20)',
+    '--win-shadow':       '0 20px 50px rgba(0,0,0,0.6)',
+    '--win-header-bg':    'rgba(0,200,180,0.07)',
+    '--win-title-color':  'rgba(0,200,180,0.80)',
+    '--win-body-color':   '#c8d8d4',
+    '--win-focus-shadow': '0 0 0 1.5px rgba(0,200,180,0.55),0 24px 60px rgba(0,0,0,0.7)',
+    '--dock-bg':          'rgba(14,24,26,0.78)',
+    '--term-bg':          '#0d0d0d',
+    '--term-color':       '#e8e8e8',
+    '--term-prompt':      '#00c8b4',
+    '--term-err':         '#ff6b6b',
+    '--term-ok':          '#00c8b4',
+    '--term-divider':     'rgba(0,200,180,0.10)',
+    '--link-color':       '#00b4a0',
+    '--tree-color':       '#c8d8d4',
+    '--subdued-color':    'rgba(200,216,212,0.5)',
+    '--project-border':   'rgba(0,200,180,0.12)',
+  },
+
+  /* Classic purple gradient (old default) */
+  purple: {
+    '--bg':               'linear-gradient(135deg,#667eea 0%,#764ba2 45%,#f093fb 100%)',
+    '--win-bg':           'rgba(255,255,255,0.28)',
+    '--win-blur':         '25px',
+    '--win-border':       'rgba(255,255,255,0.35)',
+    '--win-shadow':       '0 20px 50px rgba(0,0,0,0.35)',
+    '--win-header-bg':    'rgba(255,255,255,0.12)',
+    '--win-title-color':  'rgba(0,0,0,0.55)',
+    '--win-body-color':   '#111',
+    '--win-focus-shadow': '0 0 0 2px rgba(255,255,255,0.55),0 24px 60px rgba(0,0,0,0.5)',
+    '--dock-bg':          'rgba(255,255,255,0.22)',
+    '--term-bg':          '#0d0d0d',
+    '--term-color':       '#e8e8e8',
+    '--term-prompt':      '#5ba3f5',
+    '--term-err':         '#ff6b6b',
+    '--term-ok':          '#4caf72',
+    '--term-divider':     'rgba(255,255,255,0.06)',
+    '--link-color':       '#3a7bd5',
+    '--tree-color':       '#111',
+    '--subdued-color':    'rgba(0,0,0,0.5)',
+    '--project-border':   'rgba(0,0,0,0.08)',
+  },
+
+  'modern-dark': {
+    '--bg':               'linear-gradient(135deg,#0f0c29 0%,#302b63 50%,#24243e 100%)',
+    '--win-bg':           'rgba(28,28,50,0.88)',
+    '--win-blur':         '20px',
+    '--win-border':       'rgba(120,120,200,0.22)',
+    '--win-shadow':       '0 20px 60px rgba(0,0,0,0.7)',
+    '--win-header-bg':    'rgba(100,100,180,0.12)',
+    '--win-title-color':  'rgba(200,200,255,0.8)',
+    '--win-body-color':   '#d0d0e8',
+    '--win-focus-shadow': '0 0 0 2px rgba(100,120,255,0.7),0 24px 60px rgba(0,0,0,0.8)',
+    '--dock-bg':          'rgba(28,28,60,0.72)',
+    '--term-bg':          '#0a0a14',
+    '--term-color':       '#b0c4de',
+    '--term-prompt':      '#6a9fff',
+    '--term-err':         '#ff6b6b',
+    '--term-ok':          '#4caf72',
+    '--term-divider':     'rgba(100,100,200,0.15)',
+    '--link-color':       '#6a9fff',
+    '--tree-color':       '#b0c4de',
+    '--subdued-color':    'rgba(180,180,255,0.5)',
+    '--project-border':   'rgba(120,120,200,0.15)',
+  },
+
+  matrix: {
+    '--bg':               'linear-gradient(180deg,#000000 0%,#001400 100%)',
+    '--win-bg':           'rgba(0,16,0,0.92)',
+    '--win-blur':         '12px',
+    '--win-border':       'rgba(0,255,65,0.28)',
+    '--win-shadow':       '0 20px 50px rgba(0,0,0,0.9),0 0 18px rgba(0,255,65,0.1)',
+    '--win-header-bg':    'rgba(0,255,65,0.06)',
+    '--win-title-color':  '#00ff41',
+    '--win-body-color':   '#00cc33',
+    '--win-focus-shadow': '0 0 0 1px #00ff41,0 0 28px rgba(0,255,65,0.35)',
+    '--dock-bg':          'rgba(0,16,0,0.88)',
+    '--term-bg':          '#000900',
+    '--term-color':       '#00ff41',
+    '--term-prompt':      '#00ff41',
+    '--term-err':         '#ff4444',
+    '--term-ok':          '#00ff41',
+    '--term-divider':     'rgba(0,255,65,0.12)',
+    '--link-color':       '#00cc33',
+    '--tree-color':       '#00cc33',
+    '--subdued-color':    'rgba(0,200,50,0.6)',
+    '--project-border':   'rgba(0,255,65,0.15)',
+  },
+
+  light: {
+    '--bg':               'linear-gradient(135deg,#e2e8f5 0%,#d4e4f7 45%,#ece0f5 100%)',
+    '--win-bg':           'rgba(255,255,255,0.92)',
+    '--win-blur':         '20px',
+    '--win-border':       'rgba(0,0,0,0.1)',
+    '--win-shadow':       '0 8px 32px rgba(0,0,0,0.12)',
+    '--win-header-bg':    'rgba(0,0,0,0.04)',
+    '--win-title-color':  'rgba(0,0,0,0.65)',
+    '--win-body-color':   '#1a1a2e',
+    '--win-focus-shadow': '0 0 0 2px rgba(58,123,213,0.5),0 12px 40px rgba(0,0,0,0.15)',
+    '--dock-bg':          'rgba(255,255,255,0.8)',
+    '--term-bg':          '#1e1e2e',
+    '--term-color':       '#e0e0e0',
+    '--term-prompt':      '#5ba3f5',
+    '--term-err':         '#ff6b6b',
+    '--term-ok':          '#4caf72',
+    '--term-divider':     'rgba(255,255,255,0.06)',
+    '--link-color':       '#2563eb',
+    '--tree-color':       '#1a1a2e',
+    '--subdued-color':    'rgba(0,0,0,0.48)',
+    '--project-border':   'rgba(0,0,0,0.08)',
+  },
+};
+
+function applyTheme(name) {
+  const t = THEMES[name];
+  if (!t) {
+    return { error: `theme: '${name}' not found.  Available: ${Object.keys(THEMES).join(', ')}` };
+  }
+  const root = document.documentElement;
+  Object.entries(t).forEach(([k, v]) => root.style.setProperty(k, v));
+  currentTheme = name;
+  return { output: `Theme switched to '${name}'.` };
+}
+
+/* ───────────────────────────────────────────────────────
+   2. APP WINDOW TEMPLATES
+   Every template MUST contain .window-header
+─────────────────────────────────────────────────────── */
+let zIndex     = 10;
+let currentDir = '/home';
+
 const appContent = {
 
   about: `
     <div class="window-header">
-      <div class="control red" onclick="closeWindow('about')"></div>
+      <div class="control red"    onclick="minimizeWindow('about')"></div>
       <div class="control yellow"></div>
       <div class="control green"></div>
       <span class="win-title">About</span>
@@ -20,7 +199,7 @@ const appContent = {
 
   projects: `
     <div class="window-header">
-      <div class="control red" onclick="closeWindow('projects')"></div>
+      <div class="control red"    onclick="minimizeWindow('projects')"></div>
       <div class="control yellow"></div>
       <div class="control green"></div>
       <span class="win-title">Projects</span>
@@ -31,7 +210,7 @@ const appContent = {
 
   skills: `
     <div class="window-header">
-      <div class="control red" onclick="closeWindow('skills')"></div>
+      <div class="control red"    onclick="minimizeWindow('skills')"></div>
       <div class="control yellow"></div>
       <div class="control green"></div>
       <span class="win-title">Skills</span>
@@ -45,7 +224,7 @@ const appContent = {
 
   ai: `
     <div class="window-header">
-      <div class="control red" onclick="closeWindow('ai')"></div>
+      <div class="control red"    onclick="minimizeWindow('ai')"></div>
       <div class="control yellow"></div>
       <div class="control green"></div>
       <span class="win-title">Assistant</span>
@@ -58,14 +237,13 @@ const appContent = {
 
   terminal: `
     <div class="window-header">
-      <div class="control red" onclick="closeWindow('terminal')"></div>
+      <div class="control red"    onclick="minimizeWindow('terminal')"></div>
       <div class="control yellow"></div>
       <div class="control green"></div>
       <span class="win-title">Terminal</span>
     </div>
     <div class="window-body terminal">
       <div id="terminal-output" class="terminal-output">Welcome to AryaOS Terminal
-Type <span style="color:#0884ea">help</span> to see available commands.
 </div>
       <div class="terminal-input-line">
         <span class="prompt-current">arya@os:</span><span id="cwd-display">${currentDir}</span>$&nbsp;<input id="terminal-input" class="terminal-input" autocomplete="off" spellcheck="false" />
@@ -74,7 +252,7 @@ Type <span style="color:#0884ea">help</span> to see available commands.
 
   files: `
     <div class="window-header">
-      <div class="control red" onclick="closeWindow('files')"></div>
+      <div class="control red"    onclick="minimizeWindow('files')"></div>
       <div class="control yellow"></div>
       <div class="control green"></div>
       <span class="win-title">Files</span>
@@ -84,97 +262,159 @@ Type <span style="color:#0884ea">help</span> to see available commands.
     </div>`,
 };
 
-/* ─────────────────────────────────────────────────────────
-   WINDOW MANAGER
-───────────────────────────────────────────────────────── */
+/* ───────────────────────────────────────────────────────
+   3. WINDOW MANAGER
+─────────────────────────────────────────────────────── */
 const windowOffsets = {};
 
+function focusWindow(id) {
+  document.querySelectorAll('.window').forEach(w => w.classList.remove('focused'));
+  const win = document.getElementById(id);
+  if (win) win.classList.add('focused');
+}
+
+function shakeWindow(win) {
+  win.classList.remove('shaking');
+  void win.offsetWidth; /* force reflow to restart animation */
+  win.classList.add('shaking');
+  win.addEventListener('animationend', () => win.classList.remove('shaking'), { once: true });
+}
+
 function openApp(appName) {
-  if (document.getElementById(appName)) {
-    // bring existing window to front
-    document.getElementById(appName).style.zIndex = ++zIndex;
+  const existing = document.getElementById(appName);
+  if (existing) {
+    existing.style.zIndex = ++zIndex;
+    focusWindow(appName);
+    shakeWindow(existing);
     return;
   }
 
-  const win = document.createElement("div");
-  win.className = "window";
-  win.id = appName;
+  const win = document.createElement('div');
+  win.className = 'window';
+  win.id        = appName;
 
-  // stagger windows slightly
   const count = Object.keys(windowOffsets).length;
-  const top  = 80  + (count % 5) * 28;
-  const left = 140 + (count % 5) * 28;
+  win.style.top    = (80  + (count % 5) * 28) + 'px';
+  win.style.left   = (140 + (count % 5) * 28) + 'px';
+  win.style.zIndex = ++zIndex;
   windowOffsets[appName] = true;
 
-  win.style.top  = top  + "px";
-  win.style.left = left + "px";
-  win.style.zIndex = ++zIndex;
-
-  win.innerHTML = appContent[appName] || "";
+  win.innerHTML = appContent[appName] || '';
   document.body.appendChild(win);
-  makeDraggable(win);
 
-  if (appName === "terminal") initTerminal();
-  if (appName === "files")    loadFileTree();
-  if (appName === "about")    loadAboutContent();
-  if (appName === "projects") loadProjects();
+  /* Inject mobile close button into header */
+  const hdr = win.querySelector('.window-header');
+  if (hdr) {
+    const closeBtn = document.createElement('button');
+    closeBtn.className = 'mobile-close-btn';
+    closeBtn.textContent = '✕';
+    closeBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      minimizeWindow(appName);
+    });
+    hdr.appendChild(closeBtn);
+  }
+
+  win.addEventListener('mousedown', () => {
+    win.style.zIndex = ++zIndex;
+    focusWindow(appName);
+  });
+
+  makeDraggable(win);
+  focusWindow(appName);
+
+  if (appName === 'terminal') initTerminal();
+  if (appName === 'files')    loadFileTree();
+  if (appName === 'about')    loadAboutContent();
+  if (appName === 'projects') loadProjects();
 }
 
 function closeWindow(id) {
   const win = document.getElementById(id);
-  if (win) {
-    win.remove();
-    delete windowOffsets[id];
-  }
+  if (win) { win.remove(); delete windowOffsets[id]; }
 }
 
-/* ─────────────────────────────────────────────────────────
-   DRAG
-───────────────────────────────────────────────────────── */
+function minimizeWindow(id) {
+  const win = document.getElementById(id);
+  if (!win) return;
+
+  const dockIcon = document.querySelector(`.dock-icon[data-app="${id}"]`);
+  if (!dockIcon) { closeWindow(id); return; }
+
+  const wRect = win.getBoundingClientRect();
+  const dRect = dockIcon.getBoundingClientRect();
+
+  const tx = (dRect.left + dRect.width  / 2) - (wRect.left + wRect.width  / 2);
+  const ty = (dRect.top  + dRect.height / 2) - (wRect.top  + wRect.height / 2);
+
+  win.style.transition     = 'transform 0.38s cubic-bezier(0.4,0,1,1), opacity 0.32s ease';
+  win.style.transformOrigin = 'center center';
+  win.style.transform      = `translate(${tx}px,${ty}px) scale(0.05)`;
+  win.style.opacity        = '0';
+  win.style.pointerEvents  = 'none';
+
+  setTimeout(() => { win.remove(); delete windowOffsets[id]; }, 400);
+}
+
+/* ───────────────────────────────────────────────────────
+   4. DRAG  (with 20 px edge snapping)
+─────────────────────────────────────────────────────── */
 function makeDraggable(win) {
-  const header = win.querySelector(".window-header");
+  const header = win.querySelector('.window-header');
   if (!header) return;
 
-  let offsetX = 0, offsetY = 0, dragging = false;
+  let ox = 0, oy = 0, dragging = false;
 
-  header.addEventListener("mousedown", (e) => {
-    if (e.target.classList.contains("control")) return;
+  header.addEventListener('mousedown', (e) => {
+    if (e.target.classList.contains('control')) return;
     dragging = true;
-    offsetX = e.clientX - win.offsetLeft;
-    offsetY = e.clientY - win.offsetTop;
+    ox = e.clientX - win.offsetLeft;
+    oy = e.clientY - win.offsetTop;
     win.style.zIndex = ++zIndex;
+    focusWindow(win.id);
     e.preventDefault();
   });
 
-  document.addEventListener("mousemove", (e) => {
+  document.addEventListener('mousemove', (e) => {
     if (!dragging) return;
-    win.style.left = (e.clientX - offsetX) + "px";
-    win.style.top  = (e.clientY - offsetY) + "px";
+
+    const SNAP = 20;
+    let newLeft = e.clientX - ox;
+    let newTop  = e.clientY - oy;
+    const w = win.offsetWidth;
+    const h = win.offsetHeight;
+
+    if (newLeft                < SNAP) newLeft = 0;
+    if (newLeft + w > window.innerWidth  - SNAP) newLeft = window.innerWidth  - w;
+    if (newTop                 < SNAP) newTop  = 0;
+    if (newTop  + h > window.innerHeight - SNAP) newTop  = window.innerHeight - h;
+
+    win.style.left = newLeft + 'px';
+    win.style.top  = newTop  + 'px';
   });
 
-  document.addEventListener("mouseup", () => { dragging = false; });
+  document.addEventListener('mouseup', () => { dragging = false; });
 }
 
-/* ─────────────────────────────────────────────────────────
-   ABOUT
-───────────────────────────────────────────────────────── */
+/* ───────────────────────────────────────────────────────
+   5. ABOUT
+─────────────────────────────────────────────────────── */
 async function loadAboutContent() {
-  const body = document.getElementById("about-body");
+  const body = document.getElementById('about-body');
   if (!body) return;
 
   try {
-    const res  = await fetch("/api/about/");
+    const res  = await fetch('/api/about/');
     const data = await res.json();
-    body.innerHTML = "";
+    body.innerHTML = '';
 
     if (!data.text) {
-      body.innerHTML = "<p><em>No content yet. Add it via the Django admin.</em></p>";
+      body.innerHTML = '<p><em>No content yet. Add it via the Django admin.</em></p>';
       return;
     }
 
-    // Render each newline-separated paragraph
-    data.text.split("\n").forEach(line => {
-      const p = document.createElement("p");
+    data.text.split('\n').forEach(line => {
+      const p = document.createElement('p');
       p.textContent = line;
       body.appendChild(p);
     });
@@ -183,61 +423,59 @@ async function loadAboutContent() {
   }
 }
 
-/* ─────────────────────────────────────────────────────────
-   PROJECTS
-───────────────────────────────────────────────────────── */
+/* ───────────────────────────────────────────────────────
+   6. PROJECTS
+─────────────────────────────────────────────────────── */
 async function loadProjects() {
-  const body = document.getElementById("projects-body");
+  const body = document.getElementById('projects-body');
   if (!body) return;
 
   try {
-    const res  = await fetch("/api/projects/");
+    const res  = await fetch('/api/projects/');
     const data = await res.json();
-
-    body.innerHTML = "";
+    body.innerHTML = '';
 
     if (!data.projects || data.projects.length === 0) {
-      body.innerHTML = "<p><em>No projects yet. Add them via the Django admin.</em></p>";
+      body.innerHTML = '<p><em>No projects yet. Add them via the Django admin.</em></p>';
       return;
     }
 
     data.projects.forEach(p => {
-      const item = document.createElement("div");
-      item.className = "project-item";
+      const item   = document.createElement('div');
+      item.className = 'project-item';
 
-      const header = document.createElement("div");
-      header.className = "project-header";
+      const hdr  = document.createElement('div');
+      hdr.className = 'project-header';
 
-      const link = document.createElement("a");
-      link.href      = p.github_url;
-      link.target    = "_blank";
-      link.rel       = "noopener noreferrer";
+      const link = document.createElement('a');
+      link.href        = p.github_url;
+      link.target      = '_blank';
+      link.rel         = 'noopener noreferrer';
       link.textContent = p.name;
-      link.className = "project-link";
-
-      header.appendChild(link);
+      link.className   = 'project-link';
+      hdr.appendChild(link);
 
       if (p.description) {
-        const toggle = document.createElement("button");
-        toggle.className   = "project-toggle";
-        toggle.textContent = "+";
-        toggle.title       = "Show / hide description";
+        const toggle = document.createElement('button');
+        toggle.className   = 'project-toggle';
+        toggle.textContent = '+';
+        toggle.title       = 'Show / hide description';
 
-        const desc = document.createElement("div");
-        desc.className = "project-desc";
+        const desc = document.createElement('div');
+        desc.className = 'project-desc';
         desc.textContent = p.description;
+        desc.hidden = true;
 
-        toggle.addEventListener("click", () => {
-          const open = !desc.hidden;
-          desc.hidden        = open;
-          toggle.textContent = open ? "+" : "−";
+        toggle.addEventListener('click', () => {
+          desc.hidden        = !desc.hidden;
+          toggle.textContent = desc.hidden ? '+' : '−';
         });
 
-        header.appendChild(toggle);
-        item.appendChild(header);
+        hdr.appendChild(toggle);
+        item.appendChild(hdr);
         item.appendChild(desc);
       } else {
-        item.appendChild(header);
+        item.appendChild(hdr);
       }
 
       body.appendChild(item);
@@ -247,44 +485,210 @@ async function loadProjects() {
   }
 }
 
-/* ─────────────────────────────────────────────────────────
-   TERMINAL
-───────────────────────────────────────────────────────── */
-let cmdHistory  = [];
-let historyIdx  = -1;
+/* ───────────────────────────────────────────────────────
+   7. TERMINAL
+─────────────────────────────────────────────────────── */
+let cmdHistory = [];
+let historyIdx = -1;
 
+/* ── Markdown renderer (for cat <file>.md) ──────────── */
+function renderMarkdown(raw) {
+  const lines = raw.split('\n');
+  let html    = '';
+  let inList  = false;
+
+  for (const line of lines) {
+    if (/^### /.test(line)) {
+      if (inList) { html += '</ul>'; inList = false; }
+      html += `<h3>${inlineMd(line.slice(4))}</h3>`;
+    } else if (/^## /.test(line)) {
+      if (inList) { html += '</ul>'; inList = false; }
+      html += `<h2>${inlineMd(line.slice(3))}</h2>`;
+    } else if (/^# /.test(line)) {
+      if (inList) { html += '</ul>'; inList = false; }
+      html += `<h1>${inlineMd(line.slice(2))}</h1>`;
+    } else if (/^[-*] /.test(line)) {
+      if (!inList) { html += '<ul>'; inList = true; }
+      html += `<li>${inlineMd(line.slice(2))}</li>`;
+    } else if (line.trim() === '') {
+      if (inList) { html += '</ul>'; inList = false; }
+      html += '<br>';
+    } else {
+      if (inList) { html += '</ul>'; inList = false; }
+      html += `<p>${inlineMd(line)}</p>`;
+    }
+  }
+
+  if (inList) html += '</ul>';
+  return html;
+}
+
+function inlineMd(text) {
+  let s = text
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  s = s.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+  s = s.replace(/\*(.+?)\*/g,     '<em>$1</em>');
+  s = s.replace(/`(.+?)`/g,       '<code>$1</code>');
+  return s;
+}
+
+/* ── Tab-completion helpers ─────────────────────────── */
+let fsTreeCache = null;
+
+async function getOrFetchTree() {
+  if (fsTreeCache) return fsTreeCache;
+  try {
+    const res = await fetch('/fs/tree/');
+    fsTreeCache = await res.json();
+    return fsTreeCache;
+  } catch {
+    return null;
+  }
+}
+
+function getNodeAtPath(node, targetPath) {
+  const norm = targetPath.replace(/\/$/, '') || '/';
+  if ((node.path === norm) || (norm === '/' && node.path === '/')) return node;
+  if (!node.children) return null;
+  for (const child of node.children) {
+    const found = getNodeAtPath(child, norm);
+    if (found) return found;
+  }
+  return null;
+}
+
+function longestCommonPrefix(strs) {
+  if (!strs.length) return '';
+  let prefix = strs[0];
+  for (let i = 1; i < strs.length; i++) {
+    while (!strs[i].startsWith(prefix)) prefix = prefix.slice(0, -1);
+    if (!prefix) return '';
+  }
+  return prefix;
+}
+
+async function handleTabComplete(input, output) {
+  const val   = input.value;
+  const words = val.split(' ');
+  const last  = words[words.length - 1];
+
+  const slash     = last.lastIndexOf('/');
+  const dirSuffix = slash >= 0 ? last.slice(0, slash) : '';
+  const namePfx   = slash >= 0 ? last.slice(slash + 1) : last;
+
+  const lookupDir = dirSuffix
+    ? (dirSuffix.startsWith('/') ? dirSuffix : currentDir.replace(/\/$/, '') + '/' + dirSuffix)
+    : currentDir;
+
+  const tree = await getOrFetchTree();
+  if (!tree) return;
+
+  const node = getNodeAtPath(tree, lookupDir);
+  if (!node || !node.children) return;
+
+  const matches = node.children
+    .filter(c => c.name.startsWith(namePfx))
+    .map(c => c.name + (c.type === 'folder' ? '/' : ''));
+
+  if (!matches.length) return;
+
+  if (matches.length === 1) {
+    words[words.length - 1] = (dirSuffix ? dirSuffix + '/' : '') + matches[0];
+    input.value = words.join(' ');
+    return;
+  }
+
+  const hint = document.createElement('div');
+  hint.className   = 'term-out';
+  hint.textContent = matches.join('   ');
+  output.appendChild(hint);
+  scrollOutput(output);
+
+  const common = longestCommonPrefix(matches);
+  if (common.length > namePfx.length) {
+    words[words.length - 1] = (dirSuffix ? dirSuffix + '/' : '') + common;
+    input.value = words.join(' ');
+  }
+}
+
+/* ── Recruiter fast-path ────────────────────────────── */
+function runRecruiterView() {
+  const apps = ['about', 'projects', 'skills'];
+  apps.forEach(a => { if (!document.getElementById(a)) openApp(a); });
+
+  requestAnimationFrame(() => {
+    const pad  = 18;
+    const topY = 62;
+    const vw   = window.innerWidth;
+    const winW = Math.floor((vw - pad * (apps.length + 1)) / apps.length);
+    const winH = Math.min(460, window.innerHeight - topY - 90);
+
+    apps.forEach((a, i) => {
+      const win = document.getElementById(a);
+      if (!win) return;
+      win.style.left      = (pad + i * (winW + pad)) + 'px';
+      win.style.top       = topY + 'px';
+      win.style.width     = winW + 'px';
+      win.style.height    = winH + 'px';
+      win.style.maxHeight = winH + 'px';
+      win.style.zIndex    = ++zIndex;
+    });
+
+    focusWindow('about');
+  });
+}
+
+/* ── Terminal append helpers ────────────────────────── */
+function appendPre(parent, text, cls) {
+  const el = document.createElement('pre');
+  el.className   = cls || 'term-out';
+  el.textContent = text;
+  parent.appendChild(el);
+}
+
+function appendDiv(parent, text, cls) {
+  const el = document.createElement('div');
+  el.className   = cls || 'term-out';
+  el.textContent = text;
+  parent.appendChild(el);
+}
+
+/* ── Main terminal initialiser ──────────────────────── */
 function initTerminal() {
-  const input   = document.getElementById("terminal-input");
-  const output  = document.getElementById("terminal-output");
-  const cwdSpan = document.getElementById("cwd-display");
+  const input   = document.getElementById('terminal-input');
+  const output  = document.getElementById('terminal-output');
+  const cwdSpan = document.getElementById('cwd-display');
   if (!input) return;
 
   input.focus();
 
-  input.addEventListener("keydown", async (e) => {
+  input.addEventListener('keydown', async (e) => {
 
-    if (e.key === "ArrowUp") {
+    if (e.key === 'ArrowUp') {
       e.preventDefault();
       if (historyIdx > 0) historyIdx--;
-      input.value = cmdHistory[historyIdx] ?? "";
+      input.value = cmdHistory[historyIdx] ?? '';
       return;
     }
-
-    if (e.key === "ArrowDown") {
+    if (e.key === 'ArrowDown') {
       e.preventDefault();
-      if (historyIdx < cmdHistory.length - 1) historyIdx++;
-      else historyIdx = cmdHistory.length;
-      input.value = cmdHistory[historyIdx] ?? "";
+      historyIdx = Math.min(cmdHistory.length, historyIdx + 1);
+      input.value = cmdHistory[historyIdx] ?? '';
       return;
     }
 
-    if (e.key !== "Enter") return;
+    if (e.key === 'Tab') {
+      e.preventDefault();
+      await handleTabComplete(input, output);
+      return;
+    }
+
+    if (e.key !== 'Enter') return;
 
     const cmd = input.value.trim();
-    input.value = "";
+    input.value = '';
 
-    // Echo typed command
-    const echo = document.createElement("div");
+    const echo = document.createElement('div');
     echo.innerHTML =
       `<span class="prompt-used">arya@os:${currentDir}$</span> ` +
       escapeHtml(cmd);
@@ -295,50 +699,60 @@ function initTerminal() {
     cmdHistory.push(cmd);
     historyIdx = cmdHistory.length;
 
-    // Client-side: clear
-    if (cmd === "clear") {
-      output.innerHTML = "";
+    /* ── Client-side commands ── */
+    if (cmd === 'clear') { output.innerHTML = ''; return; }
+
+    if (cmd.startsWith('theme ')) {
+      const result = applyTheme(cmd.slice(6).trim());
+      if (result.output) appendDiv(output, result.output, 'term-ok');
+      if (result.error)  appendDiv(output, result.error,  'term-err');
+      scrollOutput(output);
       return;
     }
 
+    if (cmd === 'run recruiter-view') {
+      runRecruiterView();
+      appendDiv(output, '✓ Recruiter view ready.', 'term-ok');
+      scrollOutput(output);
+      return;
+    }
+
+    /* ── Backend commands ── */
     try {
-      const res  = await fetch("/api/terminal/", {
-        method:  "POST",
-        headers: { "Content-Type": "application/json" },
+      const res  = await fetch('/api/terminal/', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
         body:    JSON.stringify({ cwd: currentDir, command: cmd }),
       });
       const data = await res.json();
 
       if (data.cwd !== undefined) {
         currentDir = data.cwd;
-        cwdSpan.textContent = currentDir;
+        if (cwdSpan) cwdSpan.textContent = currentDir;
       }
 
       if (data.output !== undefined) {
-        const out = document.createElement("pre");
-        out.className   = "term-out";
-        out.textContent = data.output;
-        output.appendChild(out);
+        const isMdCat = /^cat\s+\S+\.md$/i.test(cmd);
+        if (isMdCat) {
+          const div = document.createElement('div');
+          div.className = 'term-md';
+          div.innerHTML = renderMarkdown(data.output);
+          output.appendChild(div);
+        } else {
+          appendPre(output, data.output, 'term-out');
+        }
       }
 
-      if (data.error) {
-        const err = document.createElement("div");
-        err.className   = "term-err";
-        err.textContent = data.error;
-        output.appendChild(err);
-      }
+      if (data.error) appendDiv(output, data.error, 'term-err');
 
-      // Sync file tree if filesystem was mutated
-      const mutating = ["mkdir","touch","rm","rmdir","chmod"];
-      if (mutating.some(c => cmd.startsWith(c))) {
-        window.dispatchEvent(new Event("fs:changed"));
+      const MUTATING = ['mkdir', 'touch', 'rm', 'rmdir', 'chmod'];
+      if (MUTATING.some(c => cmd.startsWith(c))) {
+        fsTreeCache = null;
+        window.dispatchEvent(new Event('fs:changed'));
       }
 
     } catch {
-      const err = document.createElement("div");
-      err.className   = "term-err";
-      err.textContent = "error: backend not reachable";
-      output.appendChild(err);
+      appendDiv(output, 'error: backend not reachable', 'term-err');
     }
 
     scrollOutput(output);
@@ -347,65 +761,220 @@ function initTerminal() {
 
 function escapeHtml(str) {
   return str
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;");
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
 }
 
 function scrollOutput(el) {
   el.scrollTop = el.scrollHeight;
 }
 
-/* ─────────────────────────────────────────────────────────
-   FILE TREE
-───────────────────────────────────────────────────────── */
+/* ───────────────────────────────────────────────────────
+   8. FILE TREE
+─────────────────────────────────────────────────────── */
 function renderTree(node, container) {
-  const item = document.createElement("div");
+  const item     = document.createElement('div');
   const isFolder = Array.isArray(node.children);
-  item.className = isFolder ? "tree-folder" : "tree-file";
+  item.className = isFolder ? 'tree-folder' : 'tree-file';
   item.textContent = node.name;
-
   container.appendChild(item);
 
   if (isFolder) {
-    const children = document.createElement("div");
-    children.className = "children";
-    node.children.forEach(child => renderTree(child, children));
-    container.appendChild(children);
+    const kids = document.createElement('div');
+    kids.className = 'children';
+    node.children.forEach(child => renderTree(child, kids));
+    container.appendChild(kids);
 
-    item.addEventListener("click", () => {
-      children.style.display =
-        children.style.display === "none" ? "block" : "none";
+    item.addEventListener('click', () => {
+      kids.style.display = kids.style.display === 'none' ? 'block' : 'none';
     });
   }
 }
 
 function loadFileTree() {
-  const treeEl = document.getElementById("file-tree");
+  const treeEl = document.getElementById('file-tree');
   if (!treeEl) return;
 
-  fetch("/fs/tree/")
+  fetch('/fs/tree/')
     .then(r => r.json())
     .then(data => {
-      treeEl.innerHTML = "";
-      if (data.error) {
-        treeEl.textContent = data.error;
-        return;
-      }
+      fsTreeCache = data;
+      treeEl.innerHTML = '';
+      if (data.error) { treeEl.textContent = data.error; return; }
       renderTree(data, treeEl);
     })
-    .catch(() => { treeEl.textContent = "Could not load file tree."; });
+    .catch(() => { treeEl.textContent = 'Could not load file tree.'; });
 }
 
-/* ─────────────────────────────────────────────────────────
-   AUTO-BOOT & EVENT LISTENERS
-───────────────────────────────────────────────────────── */
-window.onload = () => {
-  setTimeout(() => openApp("ai"), 700);
+/* ───────────────────────────────────────────────────────
+   9. FULL-SCREEN BOOT SEQUENCE
+─────────────────────────────────────────────────────── */
+const BOOT_LINES = [
+  { text: '',                                                                              delay: 10  },
+  { text: '[  0.001] Initializing hardware abstraction layer ...',                        delay: 30  },
+  { text: '[  0.023] Loading memory manager ..................... [  OK  ]',               delay: 35  },
+  { text: '[  0.045] Mounting /aryaos_storage .................. [  OK  ]',               delay: 35  },
+  { text: '[  0.068] Starting Django WSGI application .......... [  OK  ]',               delay: 35  },
+  { text: '[  0.112] Connecting SQLite database ................ [  OK  ]',               delay: 35  },
+  { text: '[  0.145] Registering REST API endpoints:',                                    delay: 25  },
+  { text: '           GET   /api/about/ ........................ [  OK  ]',               delay: 20  },
+  { text: '           GET   /api/projects/ ..................... [  OK  ]',               delay: 20  },
+  { text: '           POST  /api/terminal/ ..................... [  OK  ]',               delay: 20  },
+  { text: '           GET   /fs/tree/ .......................... [  OK  ]',               delay: 20  },
+  { text: '[  0.210] Spawning window manager ................... [  OK  ]',               delay: 35  },
+  { text: '[  0.245] Loading filesystem service ................ [  OK  ]',               delay: 35  },
+  { text: '[  0.278] Starting desktop environment .............. [  OK  ]',               delay: 35  },
+  { text: '',                                                                              delay: 30  },
+  { text: 'System ready.  Welcome, Arya.  Type  help  in Terminal.',                      delay: 25  },
+];
+
+async function typeBootLine(container, text, charDelay) {
+  const el = document.createElement('div');
+  container.appendChild(el);
+
+  for (let i = 0; i < text.length; i++) {
+    el.textContent += text[i];
+    if (charDelay > 0) await new Promise(r => setTimeout(r, charDelay));
+  }
+
+  /* Highlight [  OK  ] in green */
+  if (el.textContent.includes('[  OK  ]')) {
+    el.innerHTML = escapeHtml(el.textContent).replace(
+      /\[  OK  \]/g,
+      '<span class="boot-ok">[  OK  ]</span>'
+    );
+  }
+}
+
+async function runFullscreenBootSequence() {
+  const screen = document.getElementById('boot-screen');
+  const log    = document.getElementById('boot-log');
+  if (!screen || !log) return;
+
+  for (const line of BOOT_LINES) {
+    await new Promise(r => setTimeout(r, line.delay ?? 50));
+
+    if (!line.text) {
+      log.appendChild(document.createElement('br'));
+      continue;
+    }
+
+    /* Print line instantly — no char-by-char delay */
+    await typeBootLine(log, line.text, 0);
+    log.scrollTop = log.scrollHeight;
+  }
+
+  /* Brief pause so user can read the last line */
+  await new Promise(r => setTimeout(r, 300));
+
+  screen.classList.add('fade-out');
+
+  setTimeout(() => {
+    screen.style.display = 'none';
+    openApp('ai');
+  }, 620);
+}
+
+/* ───────────────────────────────────────────────────────
+   10. DOCK  (macOS magnification + preview tooltips)
+─────────────────────────────────────────────────────── */
+const APP_TITLES = {
+  about: 'About', projects: 'Projects', skills: 'Skills',
+  ai: 'Assistant', terminal: 'Terminal', files: 'Files',
 };
 
-window.addEventListener("fs:changed", () => {
-  if (document.getElementById("files")) loadFileTree();
+let previewEl = null;
+
+function showDockPreview(icon, appName) {
+  hideDockPreview();
+  previewEl = document.createElement('div');
+  previewEl.className   = 'dock-preview';
+  previewEl.textContent = APP_TITLES[appName] || appName;
+  document.body.appendChild(previewEl);
+
+  const rect = icon.getBoundingClientRect();
+  previewEl.style.left   = (rect.left + rect.width / 2) + 'px';
+  previewEl.style.bottom = (window.innerHeight - rect.top + 8) + 'px';
+
+  requestAnimationFrame(() => previewEl && previewEl.classList.add('visible'));
+}
+
+function hideDockPreview() {
+  if (previewEl) { previewEl.remove(); previewEl = null; }
+}
+
+function initDock() {
+  const dock = document.getElementById('dock');
+  if (!dock) return;
+
+  const icons = [...dock.querySelectorAll('.dock-icon')];
+
+  dock.addEventListener('mousemove', (e) => {
+    icons.forEach(icon => {
+      const rect       = icon.getBoundingClientRect();
+      const iconCenter = rect.left + rect.width / 2;
+      const dist       = Math.abs(e.clientX - iconCenter);
+      const halfW      = rect.width / 2;
+      const REACH      = 72; /* px from icon edge where magnification fades */
+
+      let scale;
+      if (dist <= halfW) {
+        scale = 1.45;
+      } else if (dist < halfW + REACH) {
+        const t = 1 - (dist - halfW) / REACH;
+        scale = 1 + 0.45 * t * t; /* quadratic falloff */
+      } else {
+        scale = 1;
+      }
+
+      const lift = scale > 1 ? -(scale - 1) * 14 : 0;
+      icon.style.transform = `scale(${scale.toFixed(3)}) translateY(${lift.toFixed(1)}px)`;
+    });
+  });
+
+  dock.addEventListener('mouseleave', () => {
+    icons.forEach(icon => { icon.style.transform = ''; });
+    hideDockPreview();
+  });
+
+  /* Preview tooltip for open apps */
+  icons.forEach(icon => {
+    icon.addEventListener('mouseenter', () => {
+      const appName = icon.dataset.app;
+      if (document.getElementById(appName)) showDockPreview(icon, appName);
+    });
+    icon.addEventListener('mouseleave', hideDockPreview);
+  });
+}
+
+/* ───────────────────────────────────────────────────────
+   11. MOBILE TIME CLOCK
+─────────────────────────────────────────────────────── */
+function startMobileTime() {
+  const el = document.getElementById('mobile-time');
+  if (!el) return;
+
+  const tick = () => {
+    const now = new Date();
+    el.textContent = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  };
+  tick();
+  setInterval(tick, 1000);
+}
+
+/* ───────────────────────────────────────────────────────
+   12. AUTO-BOOT & GLOBAL LISTENERS
+─────────────────────────────────────────────────────── */
+window.onload = () => {
+  initDock();
+  startMobileTime();
+  runFullscreenBootSequence();
+};
+
+window.addEventListener('fs:changed', () => {
+  fsTreeCache = null;
+  if (document.getElementById('files')) loadFileTree();
 });
 
-console.log("AryaOS loaded");
+console.log('AryaOS v4 loaded');

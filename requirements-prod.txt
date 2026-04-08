@@ -1,0 +1,5 @@
+# Minimal production dependencies — no ML/dev/test packages
+# (torch, transformers, faiss-cpu are planned but not yet integrated)
+Django>=5.0,<6.0
+whitenoise>=6.6.0
+gunicorn>=21.2.0

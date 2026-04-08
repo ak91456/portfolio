@@ -3,33 +3,46 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Arya OS</title>
-  <link rel="stylesheet" href="{% static 'desktop/css/style.css' %}?v=2">
-  <script defer src="{% static 'desktop/js/os.js' %}?v=2"></script>
+  <link rel="stylesheet" href="{% static 'desktop/css/style.css' %}?v=8">
+  <script defer src="{% static 'desktop/js/os.js' %}?v=8"></script>
 </head>
 <body>
 
-<!-- Desktop -->
-<div id="desktop">
-
-  <!-- Desktop Icons -->
-  <div class="icon" onclick="openApp('about')">📄<span>About</span></div>
-  <div class="icon" onclick="openApp('projects')">📁<span>Projects</span></div>
-  <div class="icon" onclick="openApp('skills')">🛠<span>Skills</span></div>
-  <div class="icon" onclick="openApp('ai')">🤖<span>Assistant</span></div>
-  <div class="icon" onclick="openApp('terminal')">💻<span>Terminal</span></div>
-  <div class="icon" onclick="openApp('files')">📂<span>Files</span></div>
-  
+<!-- ① Full-screen kernel boot overlay ─────────────── -->
+<div id="boot-screen">
+  <div id="boot-content">
+    <div id="boot-title">[ ARYA_OS ]  KERNEL BOOT SEQUENCE  v1.2.0</div>
+    <div id="boot-sep">──────────────────────────────────────────────</div>
+    <div id="boot-log"></div>
+    <div id="boot-prompt"><span class="boot-cursor">▌</span></div>
+  </div>
 </div>
 
-<!-- Dock -->
+<!-- Mobile status bar (hidden on desktop) ──────────── -->
+<div id="mobile-status-bar">
+  <span id="mobile-time"></span>
+</div>
+
+<!-- Desktop icons ───────────────────────────────────── -->
+<div id="desktop">
+  <div class="icon" onclick="openApp('about')"><b>📄</b><span>About</span></div>
+  <div class="icon" onclick="openApp('projects')"><b>📁</b><span>Projects</span></div>
+  <div class="icon" onclick="openApp('skills')"><b>🛠</b><span>Skills</span></div>
+  <div class="icon" onclick="openApp('ai')"><b>🤖</b><span>Assistant</span></div>
+  <div class="icon" onclick="openApp('terminal')"><b>💻</b><span>Terminal</span></div>
+  <div class="icon" onclick="openApp('files')"><b>📂</b><span>Files</span></div>
+</div>
+
+<!-- Dock — data-app powers minimize-to-dock & previews -->
 <div id="dock">
-  <div class="dock-icon" onclick="openApp('about')">📄</div>
-  <div class="dock-icon" onclick="openApp('projects')">📁</div>
-  <div class="dock-icon" onclick="openApp('skills')">🛠</div>
-  <div class="dock-icon" onclick="openApp('ai')">🤖</div>
-  <div class="dock-icon" onclick="openApp('terminal')">💻</div>
-  <div class="dock-icon" onclick="openApp('files')">📂</div>
+  <div class="dock-icon" data-app="about"    onclick="openApp('about')">📄</div>
+  <div class="dock-icon" data-app="projects" onclick="openApp('projects')">📁</div>
+  <div class="dock-icon" data-app="skills"   onclick="openApp('skills')">🛠</div>
+  <div class="dock-icon" data-app="ai"       onclick="openApp('ai')">🤖</div>
+  <div class="dock-icon" data-app="terminal" onclick="openApp('terminal')">💻</div>
+  <div class="dock-icon" data-app="files"    onclick="openApp('files')">📂</div>
 </div>
 
 </body>
