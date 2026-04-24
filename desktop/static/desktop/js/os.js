@@ -23,7 +23,7 @@ let currentTheme = 'default';
 const THEMES = {
   /* Wallpaper + frosted glass — default */
   default: {
-    '--bg':               "url('/static/desktop/wallpaper.jpg') center / cover no-repeat fixed",
+    '--bg':               "url('/static/desktop/1U6HqZ.webp') center / cover no-repeat fixed",
     '--win-bg':           'rgba(255,255,255,0.80)',
     '--win-blur':         '28px',
     '--win-border':       'rgba(255,255,255,0.50)',
@@ -194,7 +194,24 @@ const appContent = {
       <span class="win-title">About</span>
     </div>
     <div class="window-body scroll-body" id="about-body">
-      <p class="loading">Loading…</p>
+      <div class="about-hero">
+        <div class="hero-avatar">AK</div>
+        <div>
+          <h1 class="hero-name">Arya Kaushal</h1>
+          <p class="hero-role">Backend &middot; AI &middot; DevOps</p>
+        </div>
+        <p class="hero-bio" id="hero-bio-text">Loading…</p>
+        <div class="hero-tags">
+          <span>Python</span><span>Django</span><span>FastAPI</span>
+          <span>LangChain</span><span>RAG</span><span>Docker</span>
+          <span>Kubernetes</span><span>PostgreSQL</span>
+        </div>
+        <div class="hero-links">
+          <a href="https://github.com/ak91456" target="_blank" class="hero-btn">GitHub</a>
+          <a href="#" target="_blank" class="hero-btn hero-btn-outline">LinkedIn</a>
+        </div>
+      </div>
+      <div id="about-sections"></div>
     </div>`,
 
   projects: `
@@ -320,6 +337,9 @@ function openApp(appName) {
     focusWindow(appName);
   });
 
+  const greenBtn = win.querySelector('.control.green');
+  if (greenBtn) greenBtn.addEventListener('click', () => toggleMaximize(win));
+
   makeDraggable(win);
   focusWindow(appName);
 
@@ -356,6 +376,22 @@ function minimizeWindow(id) {
   setTimeout(() => { win.remove(); delete windowOffsets[id]; }, 400);
 }
 
+function toggleMaximize(win) {
+  if (win.classList.contains('maximized')) {
+    win.classList.remove('maximized');
+    win.style.top    = win._origTop;
+    win.style.left   = win._origLeft;
+    win.style.width  = win._origWidth;
+    win.style.maxHeight = win._origMaxH;
+  } else {
+    win._origTop   = win.style.top;
+    win._origLeft  = win.style.left;
+    win._origWidth = win.style.width;
+    win._origMaxH  = win.style.maxHeight;
+    win.classList.add('maximized');
+  }
+}
+
 /* ───────────────────────────────────────────────────────
    4. DRAG  (with 20 px edge snapping)
 ─────────────────────────────────────────────────────── */
@@ -367,6 +403,7 @@ function makeDraggable(win) {
 
   header.addEventListener('mousedown', (e) => {
     if (e.target.classList.contains('control')) return;
+    if (win.classList.contains('maximized')) return;
     dragging = true;
     ox = e.clientX - win.offsetLeft;
     oy = e.clientY - win.offsetTop;
@@ -400,26 +437,54 @@ function makeDraggable(win) {
    5. ABOUT
 ─────────────────────────────────────────────────────── */
 async function loadAboutContent() {
-  const body = document.getElementById('about-body');
-  if (!body) return;
+  const bio      = document.getElementById('hero-bio-text');
+  const sections = document.getElementById('about-sections');
+  if (!bio) return;
+
+  const fallbackBio = "Backend, AI & DevOps engineer who loves building things at the intersection of systems and machine learning.";
 
   try {
     const res  = await fetch('/api/about/');
     const data = await res.json();
-    body.innerHTML = '';
+    const lines = (data.text || "").split('\n').map(l => l.trim()).filter(l => l);
 
-    if (!data.text) {
-      body.innerHTML = '<p><em>No content yet. Add it via the Django admin.</em></p>';
-      return;
+    if (!lines.length) { bio.textContent = fallbackBio; return; }
+
+    // First line = intro bio
+    bio.textContent = lines[0];
+
+    // Remaining lines: emoji-prefixed lines = section headers, rest = content
+    const parsed = [];
+    let current  = null;
+    const emojiRe = /^[\u{1F300}-\u{1FAFF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/u;
+
+    for (let i = 1; i < lines.length; i++) {
+      if (emojiRe.test(lines[i])) {
+        if (current) parsed.push(current);
+        current = { title: lines[i], items: [] };
+      } else if (current) {
+        current.items.push(lines[i]);
+      }
     }
+    if (current) parsed.push(current);
 
-    data.text.split('\n').forEach(line => {
-      const p = document.createElement('p');
-      p.textContent = line;
-      body.appendChild(p);
+    if (!parsed.length || !sections) return;
+    sections.innerHTML = '';
+
+    parsed.forEach(sec => {
+      const card = document.createElement('div');
+      card.className = 'about-section';
+      card.innerHTML = `<h3 class="about-sec-title">${sec.title}</h3>` +
+        sec.items.map(item =>
+          item.startsWith('•')
+            ? `<p class="about-sec-bullet">${item}</p>`
+            : `<p class="about-sec-line">${item}</p>`
+        ).join('');
+      sections.appendChild(card);
     });
+
   } catch {
-    body.innerHTML = "<p style='color:red'>Failed to load about content.</p>";
+    bio.textContent = fallbackBio;
   }
 }
 
