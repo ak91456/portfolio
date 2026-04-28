@@ -208,7 +208,10 @@ const appContent = {
         </div>
         <div class="hero-links">
           <a href="https://github.com/ak91456" target="_blank" class="hero-btn">GitHub</a>
-          <a href="#" target="_blank" class="hero-btn hero-btn-outline">LinkedIn</a>
+          <a href="https://www.linkedin.com/in/arya-kaushal-aa530725b/" target="_blank" class="hero-btn hero-btn-outline">LinkedIn</a>
+          <a href="https://leetcode.com/u/ak91456/" target="_blank" class="hero-btn hero-btn-outline">LeetCode</a>
+          <a href="https://codeforces.com/profile/ak91456" target="_blank" class="hero-btn hero-btn-outline">Codeforces</a>
+          <a href="https://www.codechef.com/users/ak91456" target="_blank" class="hero-btn hero-btn-outline">CodeChef</a>
         </div>
       </div>
       <div id="about-sections"></div>
@@ -241,15 +244,39 @@ const appContent = {
 
   ai: `
     <div class="window-header">
-      <div class="control red"    onclick="minimizeWindow('ai')"></div>
+      <div class="control red" onclick="minimizeWindow('ai')"></div>
       <div class="control yellow"></div>
       <div class="control green"></div>
-      <span class="win-title">Assistant</span>
+      <span class="win-title">AI Assistant</span>
     </div>
-    <div class="window-body scroll-body">
-      <p><strong>Hello 👋</strong></p>
-      <p>I am <strong>Arya Kaushal</strong>, a Backend, AI &amp; DevOps Engineer.</p>
-      <p><em>What brings you here today?</em></p>
+    <div class="window-body ai-chat-body" id="ai-body">
+      <div class="ai-blobs">
+        <div class="ai-blob ai-blob-1"></div>
+        <div class="ai-blob ai-blob-2"></div>
+        <div class="ai-blob ai-blob-3"></div>
+      </div>
+      <div class="ai-messages" id="ai-messages">
+        <div class="ai-welcome">
+          <div class="ai-robot-icon">🤖</div>
+          <p class="ai-welcome-title">Hey there!</p>
+          <p class="ai-welcome-sub">Ask me anything about Arya</p>
+        </div>
+      </div>
+      <div class="ai-suggestions" id="ai-suggestions">
+        <button class="ai-chip" onclick="sendAISuggestion('What are your top skills?')">⚡ Skills</button>
+        <button class="ai-chip" onclick="sendAISuggestion('Tell me about your projects')">📁 Projects</button>
+        <button class="ai-chip" onclick="sendAISuggestion('Are you open to work?')">💼 Hiring?</button>
+        <button class="ai-chip" onclick="sendAISuggestion('How can I contact you?')">📬 Contact</button>
+      </div>
+      <div class="ai-input-row">
+        <textarea id="ai-input" class="ai-textarea" placeholder="Ask me anything…" rows="1"
+          onkeydown="handleAIKey(event)" oninput="autoResizeAI(this)"></textarea>
+        <button id="ai-send-btn" class="ai-send-btn" onclick="sendAIMessage()" disabled>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
+          </svg>
+        </button>
+      </div>
     </div>`,
 
   terminal: `
@@ -339,6 +366,13 @@ function openApp(appName) {
 
   const greenBtn = win.querySelector('.control.green');
   if (greenBtn) greenBtn.addEventListener('click', () => toggleMaximize(win));
+
+  /* Animate the folder icon */
+  const folderEl = document.querySelector(`.icon[data-app="${appName}"] .folder`);
+  if (folderEl) {
+    folderEl.classList.add('open');
+    setTimeout(() => folderEl.classList.remove('open'), 700);
+  }
 
   makeDraggable(win);
   focusWindow(appName);
@@ -434,7 +468,115 @@ function makeDraggable(win) {
 }
 
 /* ───────────────────────────────────────────────────────
-   5. ABOUT
+   5. AI CHAT
+─────────────────────────────────────────────────────── */
+let aiHistory = [];
+
+function autoResizeAI(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+  document.getElementById('ai-send-btn').disabled = !el.value.trim();
+}
+
+function handleAIKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    sendAIMessage();
+  }
+}
+
+function sendAISuggestion(text) {
+  const input = document.getElementById('ai-input');
+  if (!input) return;
+  input.value = text;
+  autoResizeAI(input);
+  sendAIMessage();
+}
+
+function appendAIMessage(role, text) {
+  const container = document.getElementById('ai-messages');
+  if (!container) return;
+
+  // Hide welcome on first message
+  const welcome = container.querySelector('.ai-welcome');
+  if (welcome) welcome.style.display = 'none';
+
+  // Hide suggestions after first user message
+  if (role === 'user') {
+    const sugg = document.getElementById('ai-suggestions');
+    if (sugg) sugg.style.display = 'none';
+  }
+
+  const row = document.createElement('div');
+  row.className = `ai-msg ai-msg-${role}`;
+
+  if (role === 'assistant') {
+    row.innerHTML = `<span class="ai-msg-avatar">🤖</span><div class="ai-msg-bubble">${text}</div>`;
+  } else {
+    row.innerHTML = `<div class="ai-msg-bubble">${text}</div>`;
+  }
+
+  container.appendChild(row);
+  container.scrollTop = container.scrollHeight;
+}
+
+function showAITyping() {
+  const container = document.getElementById('ai-messages');
+  if (!container || container.querySelector('.ai-typing')) return;
+  const el = document.createElement('div');
+  el.className = 'ai-msg ai-msg-assistant ai-typing';
+  el.innerHTML = `<span class="ai-msg-avatar">🤖</span>
+    <div class="ai-msg-bubble ai-typing-bubble">
+      <span class="ai-dot"></span><span class="ai-dot"></span><span class="ai-dot"></span>
+    </div>`;
+  container.appendChild(el);
+  container.scrollTop = container.scrollHeight;
+}
+
+function hideAITyping() {
+  const el = document.querySelector('.ai-typing');
+  if (el) el.remove();
+}
+
+async function sendAIMessage() {
+  const input = document.getElementById('ai-input');
+  const btn   = document.getElementById('ai-send-btn');
+  if (!input) return;
+
+  const text = input.value.trim();
+  if (!text) return;
+
+  // Clear input
+  input.value = '';
+  input.style.height = 'auto';
+  if (btn) btn.disabled = true;
+
+  appendAIMessage('user', text);
+  showAITyping();
+
+  aiHistory.push({ role: 'user', content: text });
+
+  try {
+    const res  = await fetch('/api/chat/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: text, history: aiHistory }),
+    });
+    const data = await res.json();
+    hideAITyping();
+
+    const reply = data.reply || data.error || 'Something went wrong.';
+    appendAIMessage('assistant', reply);
+    aiHistory.push({ role: 'assistant', content: reply });
+
+  } catch {
+    hideAITyping();
+    appendAIMessage('assistant', 'Connection error. Please try again.');
+  }
+}
+
+/* ───────────────────────────────────────────────────────
+   6. ABOUT
 ─────────────────────────────────────────────────────── */
 async function loadAboutContent() {
   const bio      = document.getElementById('hero-bio-text');
@@ -873,7 +1015,31 @@ function loadFileTree() {
 }
 
 /* ───────────────────────────────────────────────────────
-   9. FULL-SCREEN BOOT SEQUENCE
+   9. WELCOME TOAST
+─────────────────────────────────────────────────────── */
+let _welcomeTimer = null;
+
+function showWelcome() {
+  const toast = document.getElementById('welcome-toast');
+  if (!toast) return;
+  toast.classList.remove('dismiss');
+  toast.classList.add('show');
+  _welcomeTimer = setTimeout(dismissWelcome, 5000);
+}
+
+function dismissWelcome() {
+  clearTimeout(_welcomeTimer);
+  const toast = document.getElementById('welcome-toast');
+  if (!toast || !toast.classList.contains('show')) return;
+  toast.classList.add('dismiss');
+  setTimeout(() => {
+    toast.classList.remove('show', 'dismiss');
+    toast.style.display = 'none';
+  }, 460);
+}
+
+/* ───────────────────────────────────────────────────────
+   10. FULL-SCREEN BOOT SEQUENCE
 ─────────────────────────────────────────────────────── */
 const BOOT_LINES = [
   { text: '',                                                                              delay: 10  },
@@ -1029,11 +1195,117 @@ function startMobileTime() {
 }
 
 /* ───────────────────────────────────────────────────────
-   12. AUTO-BOOT & GLOBAL LISTENERS
+   12. ICON CLOUD  (3-D rotating tech sphere)
+─────────────────────────────────────────────────────── */
+const CLOUD_ICONS = [
+  { src: 'https://cdn.simpleicons.org/python/ffffff',       label: 'Python'     },
+  { src: 'https://cdn.simpleicons.org/django/ffffff',       label: 'Django'     },
+  { src: 'https://cdn.simpleicons.org/fastapi/ffffff',      label: 'FastAPI'    },
+  { src: 'https://cdn.simpleicons.org/docker/ffffff',       label: 'Docker'     },
+  { src: 'https://cdn.simpleicons.org/kubernetes/ffffff',   label: 'K8s'        },
+  { src: 'https://cdn.simpleicons.org/postgresql/ffffff',   label: 'Postgres'   },
+  { src: 'https://cdn.simpleicons.org/redis/ffffff',        label: 'Redis'      },
+  { src: 'https://cdn.simpleicons.org/pytorch/ffffff',      label: 'PyTorch'    },
+  { src: 'https://cdn.simpleicons.org/git/ffffff',          label: 'Git'        },
+  { src: 'https://cdn.simpleicons.org/linux/ffffff',        label: 'Linux'      },
+  { src: 'https://cdn.simpleicons.org/javascript/ffffff',   label: 'JS'         },
+  { src: 'https://cdn.simpleicons.org/github/ffffff',       label: 'GitHub'     },
+  { src: 'https://cdn.simpleicons.org/nodedotjs/ffffff',    label: 'Node.js'    },
+  { src: 'https://cdn.simpleicons.org/amazonaws/ffffff',    label: 'AWS'        },
+  { src: 'https://cdn.simpleicons.org/html5/ffffff',        label: 'HTML5'      },
+  { src: 'https://cdn.simpleicons.org/css3/ffffff',         label: 'CSS3'       },
+  { src: 'https://cdn.simpleicons.org/tensorflow/ffffff',   label: 'TensorFlow' },
+  { src: 'https://cdn.simpleicons.org/numpy/ffffff',        label: 'NumPy'      },
+];
+
+function initIconCloud() {
+  const canvas = document.getElementById('icon-cloud-canvas');
+  if (!canvas) return;
+  const ctx    = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  const cx = W / 2, cy = H / 2;
+  const radius = W * 0.38;
+
+  // Fibonacci sphere: evenly distribute N points on a unit sphere
+  const phi0 = (1 + Math.sqrt(5)) / 2;
+  const items = CLOUD_ICONS.map((icon, i) => {
+    const theta = 2 * Math.PI * i / phi0;
+    const p     = Math.acos(1 - 2 * (i + 0.5) / CLOUD_ICONS.length);
+    const img   = new Image();
+    img.crossOrigin = 'anonymous';
+    img.src = icon.src;
+    return { img, label: icon.label, theta, p };
+  });
+
+  let rotY = 0;
+  let rotX = 0;
+
+  function project(theta, p) {
+    // Spherical → cartesian
+    const x0 = radius * Math.sin(p) * Math.cos(theta + rotY);
+    const y0 = radius * Math.cos(p);
+    const z0 = radius * Math.sin(p) * Math.sin(theta + rotY);
+    // Rotate around X axis
+    const y1 =  y0 * Math.cos(rotX) - z0 * Math.sin(rotX);
+    const z1 =  y0 * Math.sin(rotX) + z0 * Math.cos(rotX);
+    return { x: x0, y: y1, z: z1 };
+  }
+
+  function frame() {
+    ctx.clearRect(0, 0, W, H);
+    rotY += 0.006;   // clockwise horizontal
+    rotX += 0.003;   // continuous vertical (half speed)
+
+    // Project + sort back-to-front
+    const projected = items.map(item => {
+      const pos   = project(item.theta, item.p);
+      const depth = (pos.z + radius) / (2 * radius); // 0..1
+      return { item, ...pos, depth };
+    }).sort((a, b) => a.z - b.z);
+
+    projected.forEach(({ item, x, y, depth }) => {
+      const size  = 18 + 20 * depth;
+      const alpha = 0.25 + 0.75 * depth;
+      const sx    = cx + x - size / 2;
+      const sy    = cy + y - size / 2;
+
+      ctx.globalAlpha = alpha;
+
+      if (item.img.complete && item.img.naturalWidth > 0) {
+        // Circular clip + image
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(cx + x, cy + y, size / 2, 0, Math.PI * 2);
+        ctx.clip();
+        ctx.drawImage(item.img, sx, sy, size, size);
+        ctx.restore();
+      } else {
+        // Fallback: glowing dot
+        const grad = ctx.createRadialGradient(cx+x, cy+y, 0, cx+x, cy+y, size/2);
+        grad.addColorStop(0, 'rgba(167,139,250,0.9)');
+        grad.addColorStop(1, 'rgba(102,126,234,0)');
+        ctx.fillStyle = grad;
+        ctx.beginPath();
+        ctx.arc(cx + x, cy + y, size / 2, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      ctx.globalAlpha = 1;
+    });
+
+    requestAnimationFrame(frame);
+  }
+
+  frame();
+}
+
+/* ───────────────────────────────────────────────────────
+   13. AUTO-BOOT & GLOBAL LISTENERS
 ─────────────────────────────────────────────────────── */
 window.onload = () => {
   initDock();
   startMobileTime();
+  initIconCloud();
   runFullscreenBootSequence();
 };
 
