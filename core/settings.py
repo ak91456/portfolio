@@ -1,9 +1,14 @@
 import os
 from pathlib import Path
-from dotenv import load_dotenv
 
 BASE_DIR = Path(__file__).resolve().parent.parent
-load_dotenv(BASE_DIR / ".env")
+
+# Load .env in local dev; in production (Railway/Docker) vars are injected directly
+try:
+    from dotenv import load_dotenv
+    load_dotenv(BASE_DIR / ".env")
+except ImportError:
+    pass
 
 # ── Security ──────────────────────────────────────────────────────────────────
 # Set SECRET_KEY env var in production. Dev fallback is intentionally insecure.
