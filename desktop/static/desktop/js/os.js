@@ -215,6 +215,58 @@ const appContent = {
         </div>
       </div>
       <div id="about-sections"></div>
+
+      <!-- ── Timeline ──────────────────────────────────── -->
+      <div class="tl-section">
+        <p class="tl-section-title">Timeline</p>
+        <div class="tl-list">
+
+          <div class="tl-item">
+            <span class="tl-dot"></span>
+            <span class="tl-year">2026</span>
+            <div class="tl-card">
+              <p class="tl-title">Open Source Contributions</p>
+              <p class="tl-subtitle">GitHub · Active</p>
+              <p class="tl-desc">Building Kana Dojo — an interactive Japanese kana learning app. Active contributor with public repositories spanning backend, AI, and DevOps projects.</p>
+              <span class="tl-badge">Open Source</span>
+            </div>
+          </div>
+
+          <div class="tl-item">
+            <span class="tl-dot"></span>
+            <span class="tl-year">2022–26</span>
+            <div class="tl-card">
+              <p class="tl-title">B.Tech Computer Science &amp; Engineering</p>
+              <p class="tl-subtitle">KIIT University, Bhubaneswar · CGPA 8.41</p>
+              <p class="tl-desc">Core subjects: OS, Computer Networks, DSA, DBMS, OOPs, Machine Learning, Deep Learning, Software Engineering.</p>
+              <span class="tl-badge">B.Tech · CGPA 8.41</span>
+            </div>
+          </div>
+
+          <div class="tl-item">
+            <span class="tl-dot"></span>
+            <span class="tl-year">2022</span>
+            <div class="tl-card">
+              <p class="tl-title">Class XII — Science (PCM + CS)</p>
+              <p class="tl-subtitle">Bradford International School · CBSE · 75%</p>
+              <p class="tl-desc">Physics, Chemistry, Mathematics and Computer Science.</p>
+              <span class="tl-badge">CBSE · 75%</span>
+            </div>
+          </div>
+
+          <div class="tl-item">
+            <span class="tl-dot"></span>
+            <span class="tl-year">2020</span>
+            <div class="tl-card">
+              <p class="tl-title">Class X</p>
+              <p class="tl-subtitle">Gyan Niketan School · CBSE · 90.60%</p>
+              <p class="tl-desc">All-round academics with a strong foundation in Mathematics and Science.</p>
+              <span class="tl-badge">CBSE · 90.60%</span>
+            </div>
+          </div>
+
+        </div>
+      </div>
     </div>`,
 
   projects: `
@@ -255,27 +307,67 @@ const appContent = {
         <div class="ai-blob ai-blob-2"></div>
         <div class="ai-blob ai-blob-3"></div>
       </div>
+      <div class="ai-mouse-glow" id="ai-mouse-glow"></div>
       <div class="ai-messages" id="ai-messages">
         <div class="ai-welcome">
           <div class="ai-robot-icon">🤖</div>
-          <p class="ai-welcome-title">Hey there!</p>
+          <p class="ai-welcome-title">How can I help today?</p>
           <p class="ai-welcome-sub">Ask me anything about Arya</p>
         </div>
       </div>
-      <div class="ai-suggestions" id="ai-suggestions">
-        <button class="ai-chip" onclick="sendAISuggestion('What are your top skills?')">⚡ Skills</button>
-        <button class="ai-chip" onclick="sendAISuggestion('Tell me about your projects')">📁 Projects</button>
-        <button class="ai-chip" onclick="sendAISuggestion('Are you open to work?')">💼 Hiring?</button>
-        <button class="ai-chip" onclick="sendAISuggestion('How can I contact you?')">📬 Contact</button>
-      </div>
-      <div class="ai-input-row">
-        <textarea id="ai-input" class="ai-textarea" placeholder="Ask me anything…" rows="1"
-          onkeydown="handleAIKey(event)" oninput="autoResizeAI(this)"></textarea>
-        <button id="ai-send-btn" class="ai-send-btn" onclick="sendAIMessage()" disabled>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
-          </svg>
-        </button>
+      <div class="ai-input-area">
+        <div class="ai-cmd-palette" id="ai-cmd-palette">
+          <div class="ai-cmd-item" data-cmd="/skills" data-query="What are Arya's top skills?">
+            <span class="ai-cmd-icon">⚡</span>
+            <span class="ai-cmd-label">Skills</span>
+            <span class="ai-cmd-prefix">/skills</span>
+          </div>
+          <div class="ai-cmd-item" data-cmd="/projects" data-query="Tell me about Arya's projects">
+            <span class="ai-cmd-icon">📁</span>
+            <span class="ai-cmd-label">Projects</span>
+            <span class="ai-cmd-prefix">/projects</span>
+          </div>
+          <div class="ai-cmd-item" data-cmd="/hire" data-query="Is Arya open to work?">
+            <span class="ai-cmd-icon">💼</span>
+            <span class="ai-cmd-label">Hiring?</span>
+            <span class="ai-cmd-prefix">/hire</span>
+          </div>
+          <div class="ai-cmd-item" data-cmd="/contact" data-query="How can I contact Arya?">
+            <span class="ai-cmd-icon">📬</span>
+            <span class="ai-cmd-label">Contact</span>
+            <span class="ai-cmd-prefix">/contact</span>
+          </div>
+        </div>
+        <div class="ai-input-card" id="ai-input-card">
+          <textarea id="ai-input" class="ai-textarea" placeholder="Ask me anything about Arya…" rows="1"
+            onkeydown="handleAIKey(event)" oninput="handleAIInput(this)"></textarea>
+          <div class="ai-toolbar">
+            <div style="display:flex;align-items:center;gap:4px;">
+            <button class="ai-tool-btn" id="ai-cmd-btn" title="Commands (type / to trigger)" onclick="toggleAICmdPalette()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M18 3a3 3 0 0 0-3 3v12a3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3H6a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3V6a3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3h12a3 3 0 0 0 3-3 3 3 0 0 0-3-3z"/>
+              </svg>
+            </button>
+            <button class="ai-tool-btn" id="ai-theme-btn" title="Switch to light mode" onclick="toggleAITheme()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>
+              </svg>
+            </button>
+            </div>
+            <button id="ai-send-btn" class="ai-send-btn" onclick="sendAIMessage()" disabled>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
+              </svg>
+              <span>Send</span>
+            </button>
+          </div>
+        </div>
+        <div class="ai-suggestions" id="ai-suggestions">
+          <button class="ai-chip" onclick="sendAISuggestion('What are Arya\\'s top skills?')">⚡ Skills</button>
+          <button class="ai-chip" onclick="sendAISuggestion('Tell me about his projects')">📁 Projects</button>
+          <button class="ai-chip" onclick="sendAISuggestion('Is Arya open to work?')">💼 Hiring?</button>
+          <button class="ai-chip" onclick="sendAISuggestion('How can I contact Arya?')">📬 Contact</button>
+        </div>
       </div>
     </div>`,
 
@@ -381,6 +473,7 @@ function openApp(appName) {
   if (appName === 'files')    loadFileTree();
   if (appName === 'about')    loadAboutContent();
   if (appName === 'projects') loadProjects();
+  if (appName === 'ai')       initAIWindow();
 }
 
 function closeWindow(id) {
@@ -470,15 +563,100 @@ function makeDraggable(win) {
 /* ───────────────────────────────────────────────────────
    5. AI CHAT
 ─────────────────────────────────────────────────────── */
-let aiHistory = [];
+let aiHistory    = [];
+let aiCmdActiveIdx = -1;
 
-function autoResizeAI(el) {
+/* ── Input handler (resize + btn + cmd palette) ──────── */
+function handleAIInput(el) {
   el.style.height = 'auto';
   el.style.height = Math.min(el.scrollHeight, 120) + 'px';
-  document.getElementById('ai-send-btn').disabled = !el.value.trim();
+  const btn = document.getElementById('ai-send-btn');
+  if (btn) btn.disabled = !el.value.trim();
+  const val = el.value;
+  if (val.startsWith('/') && !val.includes(' ')) {
+    showAICmdPalette(val);
+  } else {
+    hideAICmdPalette();
+  }
 }
 
+/* ── Command palette ─────────────────────────────────── */
+function getAICmdItems() {
+  return Array.from(document.querySelectorAll('.ai-cmd-item'));
+}
+
+function showAICmdPalette(prefix) {
+  const palette = document.getElementById('ai-cmd-palette');
+  if (!palette) return;
+  const items = getAICmdItems();
+  let anyVisible = false;
+  items.forEach(item => {
+    const match = item.dataset.cmd.startsWith(prefix) || prefix === '/';
+    item.style.display = match ? '' : 'none';
+    if (match) anyVisible = true;
+  });
+  palette.classList.toggle('ai-cmd-visible', anyVisible);
+  if (anyVisible && aiCmdActiveIdx < 0) setAICmdActive(0);
+}
+
+function hideAICmdPalette() {
+  const palette = document.getElementById('ai-cmd-palette');
+  if (palette) palette.classList.remove('ai-cmd-visible');
+  aiCmdActiveIdx = -1;
+  getAICmdItems().forEach(i => i.classList.remove('active'));
+}
+
+function toggleAICmdPalette() {
+  const palette = document.getElementById('ai-cmd-palette');
+  if (!palette) return;
+  if (palette.classList.contains('ai-cmd-visible')) {
+    hideAICmdPalette();
+  } else {
+    const input = document.getElementById('ai-input');
+    if (input) { input.value = '/'; handleAIInput(input); input.focus(); }
+  }
+}
+
+function setAICmdActive(idx) {
+  const items = getAICmdItems().filter(i => i.style.display !== 'none');
+  items.forEach(i => i.classList.remove('active'));
+  if (idx >= 0 && idx < items.length) {
+    items[idx].classList.add('active');
+    aiCmdActiveIdx = idx;
+  }
+}
+
+function selectAICmd(item) {
+  const input = document.getElementById('ai-input');
+  if (!input) return;
+  input.value = item.dataset.query;
+  handleAIInput(input);
+  hideAICmdPalette();
+  input.focus();
+}
+
+/* ── Keyboard handler ────────────────────────────────── */
 function handleAIKey(e) {
+  const palette    = document.getElementById('ai-cmd-palette');
+  const paletteOpen = palette && palette.classList.contains('ai-cmd-visible');
+
+  if (paletteOpen) {
+    const visible = getAICmdItems().filter(i => i.style.display !== 'none');
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setAICmdActive((aiCmdActiveIdx + 1) % visible.length);
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setAICmdActive((aiCmdActiveIdx - 1 + visible.length) % visible.length);
+    } else if (e.key === 'Tab' || e.key === 'Enter') {
+      e.preventDefault();
+      if (aiCmdActiveIdx >= 0 && visible[aiCmdActiveIdx]) selectAICmd(visible[aiCmdActiveIdx]);
+    } else if (e.key === 'Escape') {
+      e.preventDefault(); hideAICmdPalette();
+    }
+    return;
+  }
+
   if (e.key === 'Enter' && !e.shiftKey) {
     e.preventDefault();
     sendAIMessage();
@@ -489,8 +667,56 @@ function sendAISuggestion(text) {
   const input = document.getElementById('ai-input');
   if (!input) return;
   input.value = text;
-  autoResizeAI(input);
+  handleAIInput(input);
   sendAIMessage();
+}
+
+/* ── Theme toggle ────────────────────────────────────── */
+const AI_SUN_ICON  = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>`;
+const AI_MOON_ICON = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>`;
+
+function toggleAITheme() {
+  const win  = document.getElementById('ai');
+  const body = document.getElementById('ai-body');
+  const btn  = document.getElementById('ai-theme-btn');
+  if (!body) return;
+  const isLight = body.classList.toggle('ai-light');
+  if (win) win.classList.toggle('ai-light', isLight);
+  if (btn) {
+    btn.innerHTML = isLight ? AI_MOON_ICON : AI_SUN_ICON;
+    btn.title     = isLight ? 'Switch to dark mode' : 'Switch to light mode';
+  }
+  localStorage.setItem('ai-theme', isLight ? 'light' : 'dark');
+}
+
+/* ── Mouse glow + command palette click wiring ───────── */
+function initAIWindow() {
+  const body  = document.getElementById('ai-body');
+  const glow  = document.getElementById('ai-mouse-glow');
+  const input = document.getElementById('ai-input');
+  if (!body || !glow || !input) return;
+
+  /* Restore saved theme (default: dark) */
+  const win        = document.getElementById('ai');
+  const savedTheme = localStorage.getItem('ai-theme') || 'dark';
+  const btn        = document.getElementById('ai-theme-btn');
+  if (savedTheme === 'light') {
+    body.classList.add('ai-light');
+    if (win) win.classList.add('ai-light');
+    if (btn) { btn.innerHTML = AI_MOON_ICON; btn.title = 'Switch to dark mode'; }
+  } else {
+    if (btn) { btn.innerHTML = AI_SUN_ICON;  btn.title = 'Switch to light mode'; }
+  }
+
+  body.addEventListener('mousemove', e => {
+    const r = body.getBoundingClientRect();
+    glow.style.left = (e.clientX - r.left) + 'px';
+    glow.style.top  = (e.clientY - r.top)  + 'px';
+  });
+  input.addEventListener('focus', () => glow.classList.add('ai-glow-active'));
+  input.addEventListener('blur',  () => glow.classList.remove('ai-glow-active'));
+
+  getAICmdItems().forEach(item => item.addEventListener('click', () => selectAICmd(item)));
 }
 
 function appendAIMessage(role, text) {
@@ -511,9 +737,11 @@ function appendAIMessage(role, text) {
   row.className = `ai-msg ai-msg-${role}`;
 
   if (role === 'assistant') {
-    row.innerHTML = `<span class="ai-msg-avatar">🤖</span><div class="ai-msg-bubble">${text}</div>`;
+    const rendered = renderMarkdown(text);
+    row.innerHTML = `<span class="ai-msg-avatar">🤖</span><div class="ai-msg-bubble ai-msg-md">${rendered}</div>`;
   } else {
-    row.innerHTML = `<div class="ai-msg-bubble">${text}</div>`;
+    const safe = text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    row.innerHTML = `<div class="ai-msg-bubble">${safe}</div>`;
   }
 
   container.appendChild(row);
@@ -736,6 +964,12 @@ function inlineMd(text) {
   s = s.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
   s = s.replace(/\*(.+?)\*/g,     '<em>$1</em>');
   s = s.replace(/`(.+?)`/g,       '<code>$1</code>');
+  // [label](url) → clickable link (https, http, mailto)
+  s = s.replace(/\[([^\]]+)\]\(((?:https?|mailto):[^)]+)\)/g,
+    '<a href="$2" target="_blank" rel="noopener" class="ai-link">$1</a>');
+  // bare URLs not already inside an href
+  s = s.replace(/(?<!href=")(https?:\/\/[^\s<"]+)/g,
+    '<a href="$1" target="_blank" rel="noopener" class="ai-link">$1</a>');
   return s;
 }
 
